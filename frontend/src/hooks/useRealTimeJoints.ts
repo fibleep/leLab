@@ -12,6 +12,10 @@ interface UseRealTimeJointsProps {
   viewerRef: React.RefObject<URDFViewerElement>;
   enabled?: boolean;
   websocketUrl?: string;
+  // When current is true, incoming joint_update echoes are ignored so they
+  // don't fight locally-applied optimistic joint state (e.g. during an XR
+  // session). The socket stays open for sendJointCommand.
+  suppressUpdatesRef?: React.MutableRefObject<boolean>;
 }
 
 const INITIAL_RECONNECT_DELAY_MS = 1000;
@@ -21,6 +25,7 @@ export const useRealTimeJoints = ({
   viewerRef,
   enabled = true,
   websocketUrl,
+  suppressUpdatesRef,
 }: UseRealTimeJointsProps) => {
   const { wsBaseUrl } = useApi();
   const finalWebSocketUrl = websocketUrl || `${wsBaseUrl}/ws/joint-data`;
@@ -30,6 +35,22 @@ export const useRealTimeJoints = ({
   const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY_MS);
   const intentionallyClosedRef = useRef(false);
   const [isConnected, setIsConnected] = useState(false);
+
+  const sendMessage = useCallback(
+    (message: Record<string, unknown>): boolean => {
+      const ws = wsRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+      ws.send(JSON.stringify(message));
+      return true;
+    },
+    []
+  );
+
+  const sendJointCommand = useCallback(
+    (joints: Record<string, number>): boolean =>
+      sendMessage({ type: "joint_command", joints }),
+    [sendMessage]
+  );
 
   const updateJointValues = useCallback(
     (joints: Record<string, number>) => {
@@ -74,6 +95,7 @@ export const useRealTimeJoints = ({
       };
 
       ws.onmessage = (event) => {
+        if (suppressUpdatesRef?.current) return;
         try {
           const data = JSON.parse(event.data) as JointData;
           if (data.type === "joint_update" && data.joints) {
@@ -124,7 +146,7 @@ export const useRealTimeJoints = ({
       }
       setIsConnected(false);
     };
-  }, [enabled, finalWebSocketUrl, updateJointValues]);
+  }, [enabled, finalWebSocketUrl, updateJointValues, suppressUpdatesRef]);
 
-  return { isConnected };
+  return { isConnected, sendJointCommand, sendMessage };
 };

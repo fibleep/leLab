@@ -159,8 +159,8 @@ def handle_start_inference(request: InferenceRequest) -> dict[str, Any]:
     global inference_active, _inference_proc, _inference_started_at
     global _inference_rollout_started_at, _inference_meta
 
-    # Mutex with teleop and recording: all three drive the same serial bus.
-    from . import record as _record, teleoperate as _teleoperate
+    # Mutex with teleop, recording, and VR: all four drive the same serial bus.
+    from . import record as _record, teleoperate as _teleoperate, vr as _vr
 
     with _state_lock:
         if _teleoperate.teleoperation_active:
@@ -174,6 +174,12 @@ def handle_start_inference(request: InferenceRequest) -> dict[str, Any]:
                 "success": False,
                 "status_code": 409,
                 "message": "Recording is currently active. Stop it first.",
+            }
+        if _vr.vr_session_active:
+            return {
+                "success": False,
+                "status_code": 409,
+                "message": "A VR session is currently active. Stop it first.",
             }
         if inference_active:
             return {

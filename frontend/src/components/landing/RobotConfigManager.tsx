@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useApi } from "@/contexts/ApiContext";
 import { useToast } from "@/hooks/use-toast";
-import { RobotRecord } from "@/hooks/useRobots";
+import { RobotArmMode, RobotRecord } from "@/hooks/useRobots";
 import RobotTile from "./RobotTile";
 
 interface RobotConfigManagerProps {
@@ -11,7 +11,7 @@ interface RobotConfigManagerProps {
   availableNames: string[];
   isLoading: boolean;
   selectRobot: (name: string) => void;
-  createRobot: (name: string) => Promise<boolean>;
+  createRobot: (name: string, armMode: RobotArmMode) => Promise<boolean>;
   deleteRobot: (name: string) => Promise<boolean>;
 }
 

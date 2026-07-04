@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Check, ChevronsUpDown, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -15,12 +15,13 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import type { RobotArmMode } from "@/hooks/useRobots";
 
 interface RobotSelectorProps {
   selectedName: string | null;
   availableNames: string[];
   onSelect: (name: string) => void;
-  onCreateNew: (name: string) => Promise<boolean>;
+  onCreateNew: (name: string, armMode: RobotArmMode) => Promise<boolean>;
   isLoading: boolean;
 }
 
@@ -33,6 +34,7 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [choosingMode, setChoosingMode] = useState(false);
 
   const trimmed = query.trim();
   const matchesExisting = availableNames.some(
@@ -49,6 +51,7 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
 
   const reset = () => {
     setQuery("");
+    setChoosingMode(false);
     setOpen(false);
   };
 
@@ -57,9 +60,14 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
     reset();
   };
 
-  const handleCreate = async () => {
+  const handleCreate = () => {
     if (!canCreate) return;
-    const ok = await onCreateNew(trimmed);
+    setChoosingMode(true);
+  };
+
+  const handleCreateWithMode = async (armMode: RobotArmMode) => {
+    if (!canCreate) return;
+    const ok = await onCreateNew(trimmed, armMode);
     if (ok) reset();
   };
 
@@ -90,7 +98,10 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
           <CommandInput
             placeholder="Search or type new name..."
             value={query}
-            onValueChange={setQuery}
+            onValueChange={(next) => {
+              setQuery(next);
+              setChoosingMode(false);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && canCreate) {
                 e.preventDefault();
@@ -126,15 +137,46 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
               </CommandGroup>
             )}
           </CommandList>
-          <button
-            type="button"
-            onClick={handleCreate}
-            disabled={createDisabled}
-            className="flex w-full items-center gap-2 border-t border-gray-700 px-3 py-2 text-sm text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:text-gray-500 disabled:hover:bg-transparent"
-          >
-            <Plus className="h-4 w-4" />
-            {createLabel}
-          </button>
+          {choosingMode && canCreate ? (
+            <div className="border-t border-gray-700">
+              <button
+                type="button"
+                onClick={() => setChoosingMode(false)}
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                <ChevronLeft className="h-3 w-3" />
+                {`Create "${trimmed}" as…`}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCreateWithMode("single")}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-white hover:bg-gray-700"
+              >
+                <Plus className="h-4 w-4 shrink-0" />
+                <span className="text-left">One robot — single arm (VR & inference)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCreateWithMode("pair")}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-white hover:bg-gray-700"
+              >
+                <Plus className="h-4 w-4 shrink-0" />
+                <span className="text-left">
+                  Two robots — leader + follower (full teleop & recording)
+                </span>
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleCreate}
+              disabled={createDisabled}
+              className="flex w-full items-center gap-2 border-t border-gray-700 px-3 py-2 text-sm text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:text-gray-500 disabled:hover:bg-transparent"
+            >
+              <Plus className="h-4 w-4" />
+              {createLabel}
+            </button>
+          )}
         </Command>
       </PopoverContent>
     </Popover>

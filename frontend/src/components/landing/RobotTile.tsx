@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { RobotRecord } from "@/hooks/useRobots";
+import { RobotArmMode, RobotRecord } from "@/hooks/useRobots";
 import RobotSelector from "./RobotSelector";
 
 interface RobotTileProps {
@@ -23,7 +23,7 @@ interface RobotTileProps {
   availableNames: string[];
   isLoading: boolean;
   onSelect: (name: string) => void;
-  onCreateNew: (name: string) => Promise<boolean>;
+  onCreateNew: (name: string, armMode: RobotArmMode) => Promise<boolean>;
   onConfigure: (name: string) => void;
   onTeleop: (robot: RobotRecord) => void;
   onDelete: (name: string) => void;
@@ -41,8 +41,31 @@ const RobotTile: React.FC<RobotTileProps> = ({
   onDelete,
 }) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const status = robot ? (robot.is_clean ? "Ready" : "Needs configuration") : null;
-  const teleopDisabled = !robot || !robot.is_clean;
+  const isSingleArm = robot?.arm_mode === "single";
+  // Single-arm robots only need the follower side; pairs keep the three-state logic.
+  const status = robot
+    ? isSingleArm
+      ? robot.is_follower_ready
+        ? "Ready"
+        : "Needs configuration"
+      : robot.is_clean
+      ? "Ready"
+      : robot.is_follower_ready
+      ? "Follower ready · VR & inference"
+      : "Needs configuration"
+    : null;
+  const statusColor = robot
+    ? isSingleArm
+      ? robot.is_follower_ready
+        ? "text-green-400"
+        : "text-amber-400"
+      : robot.is_clean
+      ? "text-green-400"
+      : robot.is_follower_ready
+      ? "text-sky-400"
+      : "text-amber-400"
+    : "";
+  const teleopDisabled = !robot || isSingleArm || !robot.is_clean;
 
   return (
     <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 flex flex-col gap-2 relative">
@@ -57,11 +80,7 @@ const RobotTile: React.FC<RobotTileProps> = ({
           />
         </div>
         {status && (
-          <p
-            className={`text-xs truncate shrink-0 ${
-              robot!.is_clean ? "text-green-400" : "text-amber-400"
-            }`}
-          >
+          <p className={`text-xs truncate shrink-0 ${statusColor}`}>
             {status}
           </p>
         )}
@@ -117,7 +136,13 @@ const RobotTile: React.FC<RobotTileProps> = ({
             </div>
           </TooltipTrigger>
           {teleopDisabled && (
-            <TooltipContent>Configure the robot first.</TooltipContent>
+            <TooltipContent className="max-w-xs">
+              {isSingleArm
+                ? "Single-arm robots don't support leader-follower teleoperation — use VR or Inference instead."
+                : robot?.is_follower_ready
+                ? "Teleoperation needs a leader arm. SO101 leader and follower use the same servos — calibrate a second follower arm under the Leader flow in Calibration to use it as the leader."
+                : "Configure the robot first."}
+            </TooltipContent>
           )}
         </Tooltip>
       )}

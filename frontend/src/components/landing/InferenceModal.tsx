@@ -198,7 +198,7 @@ const InferenceModal: React.FC<Props> = ({
 
   const canStart =
     !!robot &&
-    robot.is_clean &&
+    (robot.is_clean || robot.is_follower_ready) &&
     selectedRef != null &&
     !!policyConfig &&
     allCamerasBound &&
@@ -283,12 +283,13 @@ const InferenceModal: React.FC<Props> = ({
                   Select and configure a robot on the Landing page first.
                 </AlertDescription>
               </Alert>
-            ) : !robot.is_clean ? (
+            ) : !(robot.is_clean || robot.is_follower_ready) ? (
               <Alert className="bg-amber-900/40 border-amber-700 text-amber-100">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>{robot.name}</strong> is missing a calibration.
-                  Configure it before running inference.
+                  <strong>{robot.name}</strong> is missing a follower
+                  calibration. Inference only needs the follower arm — calibrate
+                  it before running inference.
                 </AlertDescription>
               </Alert>
             ) : (

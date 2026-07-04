@@ -329,6 +329,9 @@ def get_default_robot_config(robot_type: str, available_configs: list):
 _INVALID_NAME_CHARS = ("/", "\\", "..")
 _ROBOT_STRING_FIELDS = ("leader_port", "follower_port", "leader_config", "follower_config")
 _ROBOT_LIST_FIELDS = ("cameras",)
+# "pair" = leader + follower (full teleop & recording); "single" = one arm (VR & inference).
+_ROBOT_ARM_MODES = ("single", "pair")
+_DEFAULT_ARM_MODE = "pair"
 
 
 def _robot_record_path(name: str) -> str:
@@ -350,6 +353,7 @@ def _empty_record(name: str) -> dict:
         record[field] = ""
     for field in _ROBOT_LIST_FIELDS:
         record[field] = []
+    record["arm_mode"] = _DEFAULT_ARM_MODE
     return record
 
 
@@ -368,6 +372,9 @@ def get_robot_record(name: str) -> dict | None:
     record = _empty_record(name)
     record.update({k: v for k, v in data.items() if k in record})
     record["name"] = name
+    # Records written before arm_mode existed (or hand-edited to garbage) load as "pair".
+    if record.get("arm_mode") not in _ROBOT_ARM_MODES:
+        record["arm_mode"] = _DEFAULT_ARM_MODE
     return record
 
 
@@ -413,6 +420,11 @@ def save_robot_record(name: str, data: dict, allow_create: bool = True) -> bool:
     for field in _ROBOT_LIST_FIELDS:
         if field in data and isinstance(data[field], list):
             record[field] = data[field]
+    if "arm_mode" in data:
+        if data["arm_mode"] in _ROBOT_ARM_MODES:
+            record["arm_mode"] = data["arm_mode"]
+        else:
+            logger.warning(f"Ignoring invalid arm_mode {data['arm_mode']!r} for robot {name}")
     record["name"] = name
 
     path = _robot_record_path(name)
@@ -448,3 +460,20 @@ def is_robot_record_clean(record: dict) -> bool:
     leader_path = os.path.join(LEADER_CONFIG_PATH, record["leader_config"])
     follower_path = os.path.join(FOLLOWER_CONFIG_PATH, record["follower_config"])
     return os.path.exists(leader_path) and os.path.exists(follower_path)
+
+
+def is_robot_record_follower_ready(record: dict) -> bool:
+    """
+    A record is 'follower ready' when the follower side alone is usable: port and
+    config are populated and the follower calibration file exists on disk. Enough
+    for VR teleop and policy inference; classic teleop/recording still need a
+    leader (see is_robot_record_clean).
+    """
+    if not record:
+        return False
+    for field in ("follower_port", "follower_config"):
+        value = record.get(field, "")
+        if not isinstance(value, str) or not value.strip():
+            return False
+    follower_path = os.path.join(FOLLOWER_CONFIG_PATH, record["follower_config"])
+    return os.path.exists(follower_path)

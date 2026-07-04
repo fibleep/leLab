@@ -106,8 +106,20 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                 <Alert className="bg-amber-900/40 border-amber-700 text-amber-100">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>{robot.name}</strong> is missing a calibration.
-                    Configure it before recording.
+                    {robot.is_follower_ready ? (
+                      <>
+                        <strong>{robot.name}</strong> needs a leader arm for
+                        teleoperation before it can record. SO101 leader and
+                        follower use the same servos — calibrate a second
+                        follower arm under the Leader flow in Calibration to
+                        use it as the leader.
+                      </>
+                    ) : (
+                      <>
+                        <strong>{robot.name}</strong> is missing a calibration.
+                        Configure it before recording.
+                      </>
+                    )}
                   </AlertDescription>
                 </Alert>
               ) : (

@@ -142,7 +142,7 @@ def handle_start_teleoperation(request: TeleoperateRequest, websocket_manager=No
     """
     global teleoperation_active, teleoperation_thread, current_robot, current_teleop
 
-    from . import record as _record, rollout as _rollout
+    from . import record as _record, rollout as _rollout, vr as _vr
 
     with _state_lock:
         if teleoperation_active:
@@ -151,6 +151,8 @@ def handle_start_teleoperation(request: TeleoperateRequest, websocket_manager=No
             return {"success": False, "message": "Recording is currently active. Stop it first."}
         if _rollout.inference_active:
             return {"success": False, "message": "Inference is currently active. Stop it first."}
+        if _vr.vr_session_active:
+            return {"success": False, "message": "A VR session is currently active. Stop it first."}
         teleoperation_active = True
 
     robot = None

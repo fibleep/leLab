@@ -135,7 +135,9 @@ const Landing = () => {
     if (!robot.is_clean) {
       toast({
         title: "Robot not ready",
-        description: `${robot.name} is missing a calibration. Configure it before recording.`,
+        description: robot.is_follower_ready
+          ? `${robot.name} needs a leader arm for teleoperation before it can record. SO101 leader and follower use the same servos — calibrate a second follower arm under the Leader flow in Calibration.`
+          : `${robot.name} is missing a calibration. Configure it before recording.`,
         variant: "destructive",
       });
       return;
@@ -240,7 +242,7 @@ const Landing = () => {
             createRobot={createRobot}
             deleteRobot={deleteRobot}
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 flex flex-col gap-2">
               <h3 className="font-semibold text-lg text-left h-10 flex items-center">
                 Dataset
@@ -275,6 +277,17 @@ const Landing = () => {
                 className="w-full bg-green-500 hover:bg-green-600 text-white"
               >
                 Training
+              </Button>
+            </div>
+            <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 flex flex-col gap-2">
+              <h3 className="font-semibold text-lg text-left h-10 flex items-center">
+                VR
+              </h3>
+              <Button
+                onClick={() => navigate("/vr")}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                VR Teleoperation
               </Button>
             </div>
           </div>

@@ -1,11 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-  memo,
-} from "react";
+import React, { useEffect, useRef, useState, useMemo, memo } from "react";
 import { cn } from "@/lib/utils";
 
 import URDFManipulator from "urdf-loader/src/urdf-manipulator-element.js";
@@ -16,6 +9,8 @@ import {
   setupMeshLoader,
   setupJointHighlighting,
   setupModelLoading,
+  defaultUrdfUrlModifier,
+  DEFAULT_URDF_PATH,
   URDFViewerElement,
 } from "@/lib/urdfViewerHelpers";
 
@@ -76,55 +71,6 @@ const UrdfViewer: React.FC = () => {
     registerUrdfProcessor(urdfProcessor);
   }, [registerUrdfProcessor, urdfProcessor]);
 
-  // Create URL modifier function for default model
-  const defaultUrlModifier = useCallback((url: string) => {
-    console.log(`🔗 defaultUrlModifier called with: ${url}`);
-
-    // Handle various package:// URL formats for the default SO-101 model
-    if (url.startsWith("package://so_arm_description/meshes/")) {
-      const modifiedUrl = url.replace(
-        "package://so_arm_description/meshes/",
-        "/so-101-urdf/meshes/"
-      );
-      console.log(`🔗 Modified URL (package): ${modifiedUrl}`);
-      return modifiedUrl;
-    }
-
-    // Handle case where package path might be partially resolved
-    if (url.includes("so_arm_description/meshes/")) {
-      const modifiedUrl = url.replace(
-        /.*so_arm_description\/meshes\//,
-        "/so-101-urdf/meshes/"
-      );
-      console.log(`🔗 Modified URL (partial): ${modifiedUrl}`);
-      return modifiedUrl;
-    }
-
-    // Handle the specific problematic path pattern we're seeing in logs
-    if (url.includes("/so-101-urdf/so_arm_description/meshes/")) {
-      const modifiedUrl = url.replace(
-        "/so-101-urdf/so_arm_description/meshes/",
-        "/so-101-urdf/meshes/"
-      );
-      console.log(`🔗 Modified URL (problematic path): ${modifiedUrl}`);
-      return modifiedUrl;
-    }
-
-    // Handle relative paths that might need mesh folder prefix
-    if (
-      url.endsWith(".stl") &&
-      !url.startsWith("/") &&
-      !url.startsWith("http")
-    ) {
-      const modifiedUrl = `/so-101-urdf/meshes/${url}`;
-      console.log(`🔗 Modified URL (relative): ${modifiedUrl}`);
-      return modifiedUrl;
-    }
-
-    console.log(`🔗 Unmodified URL: ${url}`);
-    return url;
-  }, []);
-
   // Main effect to create and setup the viewer only once
   useEffect(() => {
     if (!containerRef.current) return;
@@ -135,14 +81,12 @@ const UrdfViewer: React.FC = () => {
 
     // Setup mesh loading function with appropriate URL modifier
     const activeUrlModifier = isDefaultModel
-      ? defaultUrlModifier
+      ? defaultUrdfUrlModifier
       : urlModifierFunc;
     setupMeshLoader(viewer, activeUrlModifier);
 
     // Determine which URDF to load - fixed path to match the actual available file
-    const urdfPath = isDefaultModel
-      ? "/so-101-urdf/urdf/so101_new_calib.urdf"
-      : customUrdfPath || "";
+    const urdfPath = isDefaultModel ? DEFAULT_URDF_PATH : customUrdfPath || "";
 
     // Set the package path for the default model
     if (isDefaultModel) {
@@ -254,13 +198,7 @@ const UrdfViewer: React.FC = () => {
       cleanupModelLoading();
       viewer.removeEventListener("urdf-processed", onModelProcessed);
     };
-  }, [
-    isDefaultModel,
-    customUrdfPath,
-    urlModifierFunc,
-    defaultUrlModifier,
-    alternativeUrdfModels,
-  ]);
+  }, [isDefaultModel, customUrdfPath, urlModifierFunc, alternativeUrdfModels]);
 
   return (
     <div

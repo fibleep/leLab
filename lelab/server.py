@@ -93,6 +93,7 @@ from .utils.config import (
     get_robot_record,
     get_saved_robot_port,
     is_robot_record_clean,
+    is_robot_record_follower_ready,
     is_valid_robot_name,
     list_robot_records,
     save_robot_port,
@@ -111,6 +112,15 @@ from .utils.system import (
     handle_install_wandb_extra,
     handle_install_wandb_extra_status,
     warn_if_cuda_mismatch,
+)
+from .vr import (
+    VrSessionRequest,
+    handle_start_vr_session,
+    handle_stop_vr_session,
+    handle_vr_ee_command,
+    handle_vr_ee_reset,
+    handle_vr_joint_command,
+    handle_vr_session_status,
 )
 
 # Set up logging
@@ -326,6 +336,24 @@ def get_joint_positions():
     return handle_get_joint_positions()
 
 
+@app.post("/vr/session/start")
+def vr_session_start(request: VrSessionRequest):
+    """Start a VR teleoperation session (virtual puppet or real follower arm)"""
+    return handle_start_vr_session(request, manager)
+
+
+@app.post("/vr/session/stop")
+def vr_session_stop():
+    """Stop the current VR session"""
+    return handle_stop_vr_session()
+
+
+@app.get("/vr/session/status")
+def vr_session_status():
+    """Get the current VR session status"""
+    return handle_vr_session_status()
+
+
 @app.post("/start-inference")
 def start_inference(request: InferenceRequest):
     result = handle_start_inference(request)
@@ -404,8 +432,24 @@ async def websocket_endpoint(websocket: WebSocket):
             # Keep the connection alive and wait for messages
             try:
                 data = await asyncio.wait_for(websocket.receive_text(), timeout=1.0)
-                # Handle any incoming messages if needed
-                logger.debug(f"Received WebSocket message: {data}")
+                # VR clients push joint_command / ee_reset / ee_command
+                # messages on this channel; anything else is logged and
+                # ignored (existing behavior).
+                try:
+                    message = json.loads(data)
+                except json.JSONDecodeError:
+                    message = None
+                message_type = message.get("type") if isinstance(message, dict) else None
+                if message_type == "joint_command":
+                    joints = message.get("joints")
+                    if isinstance(joints, dict):
+                        handle_vr_joint_command(joints, manager)
+                elif message_type == "ee_reset":
+                    handle_vr_ee_reset()
+                elif message_type == "ee_command":
+                    handle_vr_ee_command(message, manager)
+                else:
+                    logger.debug(f"Received WebSocket message: {data}")
             except TimeoutError:
                 # No message received, continue
                 pass
@@ -1149,8 +1193,20 @@ def get_robot_config(robot_type: RobotSideLiteral, available_configs: str = ""):
 
 
 def _record_with_clean(record: dict) -> dict:
-    """Attach `is_clean` to a record for API responses."""
-    return {**record, "is_clean": is_robot_record_clean(record)}
+    """Attach `is_clean`, `is_follower_ready`, and `is_ready` to a record for API responses.
+
+    `is_ready` is what the record's arm_mode actually needs: a "pair" robot is
+    ready when fully clean (leader + follower), a "single" robot when the
+    follower side alone is usable.
+    """
+    is_clean = is_robot_record_clean(record)
+    is_follower_ready = is_robot_record_follower_ready(record)
+    return {
+        **record,
+        "is_clean": is_clean,
+        "is_follower_ready": is_follower_ready,
+        "is_ready": is_follower_ready if record.get("arm_mode") == "single" else is_clean,
+    }
 
 
 @app.get("/robots")

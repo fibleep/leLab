@@ -4,6 +4,8 @@ import { useApi } from "@/contexts/ApiContext";
 import { useToast } from "@/hooks/use-toast";
 import type { CameraConfig } from "@/components/recording/CameraConfiguration";
 
+export type RobotArmMode = "single" | "pair";
+
 export interface RobotRecord {
   name: string;
   leader_port: string;
@@ -11,7 +13,10 @@ export interface RobotRecord {
   leader_config: string;
   follower_config: string;
   cameras: CameraConfig[];
+  arm_mode: RobotArmMode;
   is_clean: boolean;
+  is_follower_ready: boolean;
+  is_ready: boolean;
 }
 
 const SELECTED_KEY = "lelab.selectedRobot";
@@ -86,7 +91,7 @@ export const useRobots = () => {
   }, []);
 
   const createRobot = useCallback(
-    async (rawName: string): Promise<boolean> => {
+    async (rawName: string, armMode: RobotArmMode): Promise<boolean> => {
       const name = rawName.trim();
       if (!name) {
         toast({ title: "Missing name", description: "Robot name cannot be empty.", variant: "destructive" });
@@ -100,7 +105,7 @@ export const useRobots = () => {
         const res = await fetchWithHeaders(`${baseUrl}/robots/${encodeURIComponent(name)}?create=true`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: "{}",
+          body: JSON.stringify({ arm_mode: armMode }),
         });
         if (res.status === 409) {
           toast({

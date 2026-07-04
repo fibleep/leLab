@@ -46,56 +46,73 @@ BACKEND_PORT = 8000
 FRONTEND_DEV_PORT = 8080
 
 
-def _wait_for_port(port: int, timeout: int = 30) -> bool:
+# Bind addresses reachable from this machine on loopback; anything else
+# (e.g. a LAN IP with a TLS cert issued for it) must be polled/opened as-is.
+_LOOPBACK_REACHABLE_HOSTS = ("127.0.0.1", "localhost", "0.0.0.0", "::")
+
+
+def _connect_host(bind_host: str) -> str:
+    """Host to poll/open for a given bind address."""
+    return "localhost" if bind_host in _LOOPBACK_REACHABLE_HOSTS else bind_host
+
+
+def _wait_for_port(port: int, timeout: int = 30, host: str = "localhost") -> bool:
     for _ in range(timeout):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex(("localhost", port))
-        sock.close()
-        if result == 0:
-            return True
-        time.sleep(1)
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return True
+        except OSError:
+            time.sleep(1)
     return False
 
 
-def _open_browser_when_ready():
-    """Background-thread helper: poll the port, open the browser when up."""
+def _open_browser_when_ready(scheme: str = "http", host: str = "127.0.0.1"):
+    """Background-thread helper: poll the port, open the browser when up.
+
+    Wildcard/loopback binds are reached via localhost; a specific LAN bind
+    (e.g. with a TLS cert for that IP) is polled and opened on that host so
+    the URL matches where the server actually listens.
+    """
+    target = _connect_host(host)
     for _ in range(60):
         try:
-            with socket.create_connection(("127.0.0.1", BACKEND_PORT), timeout=0.5):
+            with socket.create_connection((target, BACKEND_PORT), timeout=0.5):
                 pass
         except OSError:
             time.sleep(0.5)
             continue
         logger.info("🌐 Opening browser...")
-        webbrowser.open(f"http://localhost:{BACKEND_PORT}/")
+        webbrowser.open(f"{scheme}://{target}:{BACKEND_PORT}/")
         return
 
 
-def _run_prod():
+def _run_prod(host: str, ssl_certfile: str | None, ssl_keyfile: str | None):
     """Serve built frontend from backend on a single port."""
     if not FRONTEND_DIST.exists():
         logger.error(f"❌ Built frontend not found at {FRONTEND_DIST}")
         logger.error("   Run `npm run build` in frontend/ first, or use `lelab --dev`.")
         sys.exit(1)
 
-    logger.info("🚀 Starting LeLab on http://localhost:%d ...", BACKEND_PORT)
+    scheme = "https" if ssl_certfile and ssl_keyfile else "http"
+    logger.info("🚀 Starting LeLab on %s://%s:%d ...", scheme, host, BACKEND_PORT)
 
-    threading.Thread(target=_open_browser_when_ready, daemon=True).start()
+    threading.Thread(target=_open_browser_when_ready, args=(scheme, host), daemon=True).start()
 
     # Run uvicorn in the main thread so its native SIGINT handler works,
     # and bound graceful shutdown so a stuck WebSocket can't hang Ctrl+C.
     uvicorn.run(
         "lelab.server:app",
-        host="127.0.0.1",
+        host=host,
         port=BACKEND_PORT,
         log_level="info",
         reload=False,
         timeout_graceful_shutdown=2,
+        ssl_certfile=ssl_certfile,
+        ssl_keyfile=ssl_keyfile,
     )
 
 
-def _run_dev():
+def _run_dev(host: str, ssl_certfile: str | None, ssl_keyfile: str | None):
     """Vite dev server (HMR) + uvicorn --reload."""
     if not FRONTEND_PATH.exists():
         logger.error(f"❌ Frontend not found at {FRONTEND_PATH}")
@@ -119,24 +136,29 @@ def _run_dev():
         sys.exit(1)
 
     logger.info("🚀 Starting backend (port %d) with --reload...", BACKEND_PORT)
+    backend_cmd = [
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "lelab.server:app",
+        "--host",
+        host,
+        "--port",
+        str(BACKEND_PORT),
+        "--reload",
+    ]
+    if ssl_certfile:
+        backend_cmd += ["--ssl-certfile", ssl_certfile]
+    if ssl_keyfile:
+        backend_cmd += ["--ssl-keyfile", ssl_keyfile]
     backend_process = subprocess.Popen(
-        [
-            sys.executable,
-            "-m",
-            "uvicorn",
-            "lelab.server:app",
-            "--host",
-            "127.0.0.1",
-            "--port",
-            str(BACKEND_PORT),
-            "--reload",
-        ],
+        backend_cmd,
         cwd=PROJECT_ROOT,
         env=os.environ.copy(),
         start_new_session=True,
     )
 
-    if not _wait_for_port(BACKEND_PORT, timeout=15):
+    if not _wait_for_port(BACKEND_PORT, timeout=15, host=_connect_host(host)):
         logger.error("❌ Backend never came up")
         for p in (backend_process, frontend_process):
             try:
@@ -188,12 +210,27 @@ def main():
         action="store_true",
         help="Dev mode: Vite HMR + uvicorn --reload (requires Node.js)",
     )
+    parser.add_argument(
+        "--host",
+        default=os.environ.get("LELAB_HOST", "127.0.0.1"),
+        help="Bind address for the backend (env LELAB_HOST). Use 0.0.0.0 for LAN access.",
+    )
+    parser.add_argument(
+        "--ssl-certfile",
+        default=os.environ.get("LELAB_SSL_CERTFILE"),
+        help="TLS certificate file for HTTPS (env LELAB_SSL_CERTFILE)",
+    )
+    parser.add_argument(
+        "--ssl-keyfile",
+        default=os.environ.get("LELAB_SSL_KEYFILE"),
+        help="TLS private key file for HTTPS (env LELAB_SSL_KEYFILE)",
+    )
     args = parser.parse_args()
 
     if args.dev:
-        _run_dev()
+        _run_dev(args.host, args.ssl_certfile, args.ssl_keyfile)
     else:
-        _run_prod()
+        _run_prod(args.host, args.ssl_certfile, args.ssl_keyfile)
 
 
 if __name__ == "__main__":

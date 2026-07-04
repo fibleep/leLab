@@ -12,6 +12,7 @@ import Training from "@/pages/Training";
 import Inference from "@/pages/Inference";
 import EditDataset from "@/pages/EditDataset";
 import Upload from "@/pages/Upload";
+import VrTeleop from "@/pages/VrTeleop";
 
 import NotFound from "@/pages/NotFound";
 import SingleTabGuard from "@/components/SingleTabGuard";
@@ -46,6 +47,7 @@ function App() {
                         <Route path="/inference" element={<Inference />} />
                         <Route path="/calibration" element={<Calibration />} />
                         <Route path="/edit-dataset" element={<EditDataset />} />
+                        <Route path="/vr" element={<VrTeleop />} />
 
                         <Route path="*" element={<NotFound />} />
                       </Routes>

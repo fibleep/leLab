@@ -70,6 +70,7 @@ interface RobotRecord {
   leader_config: string;
   follower_config: string;
   cameras: CameraConfig[];
+  arm_mode: "single" | "pair";
   is_clean: boolean;
 }
 
@@ -119,11 +120,15 @@ const Calibration = () => {
       const r = await fetchRobot();
       if (!r || cancelled) return;
       // Default to the first incomplete side in the checklist (leader, then follower).
-      const defaultDevice = !r.leader_config
-        ? "teleop"
-        : !r.follower_config
-        ? "robot"
-        : "teleop";
+      // Single-arm robots have no leader — always start on the follower.
+      const defaultDevice =
+        r.arm_mode === "single"
+          ? "robot"
+          : !r.leader_config
+          ? "teleop"
+          : !r.follower_config
+          ? "robot"
+          : "teleop";
       setDeviceType(defaultDevice);
       setPort(
         defaultDevice === "teleop"
@@ -425,11 +430,14 @@ const Calibration = () => {
     (async () => {
       const r = await fetchRobot();
       if (!r) return;
-      const nextDevice = !r.leader_config
-        ? "teleop"
-        : !r.follower_config
-        ? "robot"
-        : "teleop";
+      const nextDevice =
+        r.arm_mode === "single"
+          ? "robot"
+          : !r.leader_config
+          ? "teleop"
+          : !r.follower_config
+          ? "robot"
+          : "teleop";
       setDeviceType(nextDevice);
       setPort(
         nextDevice === "teleop"
@@ -645,17 +653,25 @@ const Calibration = () => {
                     Robot calibration
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    {robot.leader_config ? (
+                    {robot.arm_mode === "single" ? (
+                      <Circle className="w-4 h-4 text-slate-600" />
+                    ) : robot.leader_config ? (
                       <CheckCircle className="w-4 h-4 text-green-400" />
                     ) : (
                       <Circle className="w-4 h-4 text-slate-500" />
                     )}
                     <span
                       className={
-                        robot.leader_config ? "text-slate-200" : "text-slate-400"
+                        robot.arm_mode === "single"
+                          ? "text-slate-500"
+                          : robot.leader_config
+                          ? "text-slate-200"
+                          : "text-slate-400"
                       }
                     >
-                      Leader (Teleoperator)
+                      {robot.arm_mode === "single"
+                        ? "Leader — Not used (single-arm robot)"
+                        : "Leader (Teleoperator)"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">

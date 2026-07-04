@@ -176,6 +176,156 @@ def test_setup_calibration_files_copies_configs(
 # CALIBRATION_BASE_PATH_ROBOTS. The plan's assertion about those paths was incorrect.
 
 
+def test_is_robot_record_follower_ready_with_follower_only(
+    tmp_lerobot_home: Path,
+) -> None:
+    from lelab.utils import config as cfg
+
+    # Follower calibration file exists on disk; leader fields stay empty.
+    calib = Path(cfg.FOLLOWER_CONFIG_PATH) / "arm2.json"
+    calib.write_text(json.dumps({"motors": {}}))
+
+    record = {
+        "name": "solo",
+        "leader_port": "",
+        "follower_port": "/dev/ttyUSB1",
+        "leader_config": "",
+        "follower_config": "arm2.json",
+    }
+    assert cfg.is_robot_record_follower_ready(record)
+    # Follower-only is not 'clean' — classic teleop/recording still need a leader.
+    assert not cfg.is_robot_record_clean(record)
+
+
+def test_is_robot_record_follower_ready_requires_calibration_file(
+    tmp_lerobot_home: Path,
+) -> None:
+    from lelab.utils import config as cfg
+
+    record = {
+        "name": "solo",
+        "leader_port": "",
+        "follower_port": "/dev/ttyUSB1",
+        "leader_config": "",
+        "follower_config": "missing.json",
+    }
+    assert not cfg.is_robot_record_follower_ready(record)
+
+
+def test_is_robot_record_follower_ready_requires_port_and_config(
+    tmp_lerobot_home: Path,
+) -> None:
+    from lelab.utils import config as cfg
+
+    calib = Path(cfg.FOLLOWER_CONFIG_PATH) / "arm2.json"
+    calib.write_text(json.dumps({"motors": {}}))
+
+    assert not cfg.is_robot_record_follower_ready({})
+    assert not cfg.is_robot_record_follower_ready({"follower_port": "", "follower_config": "arm2.json"})
+    assert not cfg.is_robot_record_follower_ready({"follower_port": "/dev/ttyUSB1", "follower_config": "  "})
+
+
+def test_robot_record_arm_mode_defaults_to_pair_for_legacy_records(
+    tmp_lerobot_home: Path,
+) -> None:
+    from lelab.utils import config as cfg
+
+    # A record written before arm_mode existed has no such key on disk.
+    legacy_path = Path(cfg.ROBOTS_PATH) / "legacy.json"
+    legacy_path.write_text(json.dumps({"name": "legacy", "leader_port": "/dev/a", "follower_port": "/dev/b"}))
+
+    loaded = cfg.get_robot_record("legacy")
+    assert loaded is not None
+    assert loaded["arm_mode"] == "pair"
+
+
+def test_robot_record_arm_mode_single_round_trips(tmp_lerobot_home: Path) -> None:
+    from lelab.utils import config as cfg
+
+    assert cfg.save_robot_record("solo", {"arm_mode": "single"}, allow_create=True)
+    loaded = cfg.get_robot_record("solo")
+    assert loaded is not None
+    assert loaded["arm_mode"] == "single"
+
+    # Partial updates that don't mention arm_mode must preserve it.
+    cfg.save_robot_record("solo", {"follower_port": "/dev/x"}, allow_create=False)
+    loaded = cfg.get_robot_record("solo")
+    assert loaded is not None
+    assert loaded["arm_mode"] == "single"
+    assert loaded["follower_port"] == "/dev/x"
+
+
+def test_robot_record_arm_mode_rejects_garbage_values(tmp_lerobot_home: Path) -> None:
+    from lelab.utils import config as cfg
+
+    cfg.save_robot_record("bot", {"arm_mode": "single"}, allow_create=True)
+    # Invalid values are ignored on save — the existing mode stays.
+    cfg.save_robot_record("bot", {"arm_mode": "banana"}, allow_create=False)
+    cfg.save_robot_record("bot", {"arm_mode": 42}, allow_create=False)
+    loaded = cfg.get_robot_record("bot")
+    assert loaded is not None
+    assert loaded["arm_mode"] == "single"
+
+    # Garbage written straight to disk loads back as the "pair" default.
+    garbage_path = Path(cfg.ROBOTS_PATH) / "garbage.json"
+    garbage_path.write_text(json.dumps({"name": "garbage", "arm_mode": "banana"}))
+    loaded = cfg.get_robot_record("garbage")
+    assert loaded is not None
+    assert loaded["arm_mode"] == "pair"
+
+
+def _follower_ready_record(cfg, name: str, arm_mode: str) -> dict:
+    """A record whose follower side is fully usable but with no leader."""
+    calib = Path(cfg.FOLLOWER_CONFIG_PATH) / f"{name}.json"
+    calib.write_text(json.dumps({"motors": {}}))
+    return {
+        "name": name,
+        "leader_port": "",
+        "follower_port": "/dev/ttyUSB1",
+        "leader_config": "",
+        "follower_config": f"{name}.json",
+        "arm_mode": arm_mode,
+    }
+
+
+def test_is_ready_derivation_single_mode(tmp_lerobot_home: Path) -> None:
+    from lelab.server import _record_with_clean
+    from lelab.utils import config as cfg
+
+    # Single-arm: follower-ready alone means ready.
+    record = _follower_ready_record(cfg, "solo_ready", "single")
+    out = _record_with_clean(record)
+    assert out["is_follower_ready"] is True
+    assert out["is_clean"] is False
+    assert out["is_ready"] is True
+
+    # Single-arm without a usable follower is not ready.
+    out = _record_with_clean({"name": "solo_bare", "arm_mode": "single"})
+    assert out["is_ready"] is False
+
+
+def test_is_ready_derivation_pair_mode(tmp_lerobot_home: Path) -> None:
+    from lelab.server import _record_with_clean
+    from lelab.utils import config as cfg
+
+    # Pair: follower-ready alone is NOT ready — a leader is still required.
+    record = _follower_ready_record(cfg, "pair_partial", "pair")
+    out = _record_with_clean(record)
+    assert out["is_follower_ready"] is True
+    assert out["is_clean"] is False
+    assert out["is_ready"] is False
+
+    # Pair with both sides calibrated is ready.
+    leader_calib = Path(cfg.LEADER_CONFIG_PATH) / "pair_full_leader.json"
+    leader_calib.write_text(json.dumps({"motors": {}}))
+    record = _follower_ready_record(cfg, "pair_full", "pair")
+    record["leader_port"] = "/dev/ttyUSB0"
+    record["leader_config"] = "pair_full_leader.json"
+    out = _record_with_clean(record)
+    assert out["is_clean"] is True
+    assert out["is_ready"] is True
+
+
 def test_with_lelab_tag_appends_to_existing_tags() -> None:
     from lelab.utils.config import LELAB_TAG, with_lelab_tag
 

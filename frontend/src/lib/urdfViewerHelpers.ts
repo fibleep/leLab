@@ -7,6 +7,7 @@ import {
   AmbientLight,
   DirectionalLight,
   Scene,
+  WebGLRenderer,
 } from "three";
 import { toast } from "@/components/ui/sonner";
 import { loadMeshFile } from "./meshLoaders";
@@ -30,6 +31,59 @@ export interface URDFViewerElement extends HTMLElement {
   redraw: () => void;
   up: string;
   scene: Scene;
+  renderer: WebGLRenderer;
+  world: Object3D;
+  updateSize: () => void;
+}
+
+export const DEFAULT_URDF_PATH = "/so-101-urdf/urdf/so101_new_calib.urdf";
+
+/**
+ * URL modifier for the default SO-101 model: rewrites package:// and
+ * partially-resolved mesh paths to the public /so-101-urdf/meshes/ folder.
+ */
+export function defaultUrdfUrlModifier(url: string): string {
+  console.log(`🔗 defaultUrlModifier called with: ${url}`);
+
+  // Handle various package:// URL formats for the default SO-101 model
+  if (url.startsWith("package://so_arm_description/meshes/")) {
+    const modifiedUrl = url.replace(
+      "package://so_arm_description/meshes/",
+      "/so-101-urdf/meshes/"
+    );
+    console.log(`🔗 Modified URL (package): ${modifiedUrl}`);
+    return modifiedUrl;
+  }
+
+  // Handle case where package path might be partially resolved
+  if (url.includes("so_arm_description/meshes/")) {
+    const modifiedUrl = url.replace(
+      /.*so_arm_description\/meshes\//,
+      "/so-101-urdf/meshes/"
+    );
+    console.log(`🔗 Modified URL (partial): ${modifiedUrl}`);
+    return modifiedUrl;
+  }
+
+  // Handle the specific problematic path pattern we're seeing in logs
+  if (url.includes("/so-101-urdf/so_arm_description/meshes/")) {
+    const modifiedUrl = url.replace(
+      "/so-101-urdf/so_arm_description/meshes/",
+      "/so-101-urdf/meshes/"
+    );
+    console.log(`🔗 Modified URL (problematic path): ${modifiedUrl}`);
+    return modifiedUrl;
+  }
+
+  // Handle relative paths that might need mesh folder prefix
+  if (url.endsWith(".stl") && !url.startsWith("/") && !url.startsWith("http")) {
+    const modifiedUrl = `/so-101-urdf/meshes/${url}`;
+    console.log(`🔗 Modified URL (relative): ${modifiedUrl}`);
+    return modifiedUrl;
+  }
+
+  console.log(`🔗 Unmodified URL: ${url}`);
+  return url;
 }
 
 /**

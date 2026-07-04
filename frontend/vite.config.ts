@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    // The `lelab --dev` launcher opens :8080; fail fast instead of silently
+    // auto-incrementing to another port.
+    strictPort: true,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(
     Boolean

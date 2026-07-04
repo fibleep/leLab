@@ -16,6 +16,10 @@ dependencies = [
     "uvicorn>=0.24.0",
     "psutil>=5.9.0",
     "lerobot[core_scripts,feetech,training] @ git+https://github.com/huggingface/lerobot.git@82dffde7fad11cba91f7916b050fbe7d7eea35ab",
+    # Kinematics backend for lerobot.model.kinematics.RobotKinematics — the VR
+    # grip-to-move end-effector mode needs FK/IK at runtime (lelab/vr.py still
+    # degrades gracefully when it's missing).
+    "placo>=0.9",
     # Windows-only: real DirectShow camera names for /available-cameras so the
     # frontend can match a camera to its browser deviceId (issues #12, #16).
     # Guarded by try/except at the call site, so its absence degrades gracefully.

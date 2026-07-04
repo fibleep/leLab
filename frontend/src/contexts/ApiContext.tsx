@@ -13,6 +13,13 @@ const DEFAULT_LOCALHOST = "http://localhost:8000";
 
 const httpToWs = (url: string): string => url.replace(/^http(s?):/, "ws$1:");
 
+const defaultBaseUrl = (): string => {
+  // On the Vite dev server the API runs separately on :8000; everywhere else
+  // the page is served by the backend itself, so its origin is the API.
+  if (import.meta.env.DEV) return DEFAULT_LOCALHOST;
+  return window.location.origin;
+};
+
 const resolveInitialBaseUrl = (): string => {
   if (typeof window === "undefined") return DEFAULT_LOCALHOST;
 
@@ -28,7 +35,7 @@ const resolveInitialBaseUrl = (): string => {
     }
   }
 
-  return window.localStorage.getItem(STORAGE_KEY) || DEFAULT_LOCALHOST;
+  return window.localStorage.getItem(STORAGE_KEY) || defaultBaseUrl();
 };
 
 export const ApiProvider: React.FC<{ children: ReactNode }> = ({
