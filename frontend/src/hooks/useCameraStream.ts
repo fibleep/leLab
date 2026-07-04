@@ -26,6 +26,10 @@ const TRANSIENT_ERRORS = new Set(["NotReadableError", "AbortError"]);
 export function useCameraStream(deviceId: string, paused: boolean) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasError, setHasError] = useState(false);
+  // DOMException name of the terminal failure (e.g. "NotAllowedError",
+  // "NotReadableError") so callers can show a specific message. Empty while
+  // healthy or when the failure wasn't a DOMException.
+  const [errorName, setErrorName] = useState("");
   // Bumping this forces the stream effect to re-run (a clean retry).
   const [retryKey, setRetryKey] = useState(0);
   // Track the error state for the devicechange handler without re-binding it.
@@ -54,6 +58,7 @@ export function useCameraStream(deviceId: string, paused: boolean) {
     let stream: MediaStream | null = null;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     setHasError(false);
+    setErrorName("");
 
     const start = async (attempt: number) => {
       try {
@@ -78,6 +83,7 @@ export function useCameraStream(deviceId: string, paused: boolean) {
             BASE_DELAY_MS * 2 ** attempt
           );
         } else {
+          setErrorName(name);
           setHasError(true);
         }
       }
@@ -91,5 +97,5 @@ export function useCameraStream(deviceId: string, paused: boolean) {
     };
   }, [deviceId, paused, retryKey]);
 
-  return { videoRef, hasError };
+  return { videoRef, hasError, errorName };
 }

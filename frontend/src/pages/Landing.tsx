@@ -11,6 +11,7 @@ import DatasetPicker from "@/components/landing/DatasetPicker";
 import JobsSection from "@/components/jobs/JobsSection";
 
 import UsageInstructionsModal from "@/components/landing/UsageInstructionsModal";
+import { CameraPreviewDialog } from "@/components/CameraPreviewGrid";
 import { useHfAuth } from "@/contexts/HfAuthContext";
 import { useRobots } from "@/hooks/useRobots";
 import { useDatasets } from "@/hooks/useDatasets";
@@ -22,6 +23,7 @@ const ON_SPACE = isHostedSpace();
 
 const Landing = () => {
   const [showUsageModal, setShowUsageModal] = useState(ON_SPACE);
+  const [showCameraPreview, setShowCameraPreview] = useState(false);
   const { auth } = useHfAuth();
 
   const {
@@ -242,7 +244,7 @@ const Landing = () => {
             createRobot={createRobot}
             deleteRobot={deleteRobot}
           />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
             <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 flex flex-col gap-2">
               <h3 className="font-semibold text-lg text-left h-10 flex items-center">
                 Dataset
@@ -290,6 +292,17 @@ const Landing = () => {
                 VR Teleoperation
               </Button>
             </div>
+            <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 flex flex-col gap-2">
+              <h3 className="font-semibold text-lg text-left h-10 flex items-center">
+                Cameras
+              </h3>
+              <Button
+                onClick={() => setShowCameraPreview(true)}
+                className="w-full bg-gray-700 hover:bg-gray-600 text-white border border-gray-600"
+              >
+                Preview Cameras
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -304,6 +317,11 @@ const Landing = () => {
         open={showUsageModal}
         onOpenChange={setShowUsageModal}
         dismissible={!ON_SPACE}
+      />
+
+      <CameraPreviewDialog
+        open={showCameraPreview}
+        onOpenChange={setShowCameraPreview}
       />
 
       <RecordingModal

@@ -19,6 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAvailableCameras } from "@/hooks/useAvailableCameras";
 import { useCameraStream } from "@/hooks/useCameraStream";
+import { CameraPreviewDialog } from "@/components/CameraPreviewGrid";
 
 // Sentinels distinguish "leave unset" (auto-detect / platform default) from an
 // explicit choice. Radix Select disallows an empty-string value, so we map these
@@ -174,6 +175,10 @@ const CameraConfiguration: React.FC<CameraConfigurationProps> = ({
     );
   };
 
+  // Full-device live preview (framing check) in a dialog — independent of
+  // which cameras are configured for recording.
+  const [showPreviewAll, setShowPreviewAll] = useState(false);
+
   // When the recording session is starting, the parent calls
   // releaseStreamsRef.current() to make every CameraPreview drop its browser
   // stream so cv2.VideoCapture can grab the camera exclusively.
@@ -191,9 +196,27 @@ const CameraConfiguration: React.FC<CameraConfigurationProps> = ({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">
-        Camera Configuration
-      </h3>
+      <div className="flex items-center justify-between border-b border-gray-700 pb-2">
+        <h3 className="text-lg font-semibold text-white">
+          Camera Configuration
+        </h3>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowPreviewAll(true)}
+          className="h-7 gap-1.5 px-2 text-xs text-gray-400 hover:text-white"
+          title="Live preview of every connected camera to frame your shot"
+        >
+          <Camera className="w-3.5 h-3.5" />
+          Preview all
+        </Button>
+      </div>
+
+      <CameraPreviewDialog
+        open={showPreviewAll}
+        onOpenChange={setShowPreviewAll}
+      />
 
       {/* Add Camera Section */}
       <div className="bg-gray-800/50 rounded-lg p-4 space-y-4">
