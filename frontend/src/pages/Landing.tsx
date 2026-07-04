@@ -1,10 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronsUpDown } from "lucide-react";
+import {
+  ChevronsUpDown,
+  Camera,
+  Database,
+  Play,
+  Boxes,
+  Circle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import LandingTopBar from "@/components/landing/LandingTopBar";
+import TopNav from "@/components/nav/TopNav";
 import Footer from "@/components/Footer";
+import DotMatrixHeading from "@/components/brand/DotMatrixHeading";
+import { Panel } from "@/components/brand/primitives";
 import RobotConfigManager from "@/components/landing/RobotConfigManager";
 import RecordingModal from "@/components/landing/RecordingModal";
 import DatasetPicker from "@/components/landing/DatasetPicker";
@@ -223,18 +232,28 @@ const Landing = () => {
     navigate("/recording", { state: { recordingConfig } });
   };
 
-  return (
-    <div
-      className="min-h-screen bg-black text-white pb-16"
-      style={{ ["--lelab-topbar-h" as string]: "48px" }}
-    >
-      <LandingTopBar />
+  const datasetLabel = selectedRecord?.name
+    ? `Select or create a dataset…`
+    : "Select or create a dataset…";
 
-      <div
-        className="sticky z-20 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/70 border-b border-gray-800"
-        style={{ top: "var(--lelab-topbar-h)" }}
-      >
-        <div className="mx-auto max-w-7xl px-4 py-4 grid gap-4 grid-cols-1 lg:grid-cols-[1.2fr_2fr]">
+  return (
+    <div className="min-h-screen bg-surface text-ink">
+      <TopNav onRecord={openRecordingModal} onHelp={() => setShowUsageModal(true)} />
+
+      {/* Hero — compact wordmark accent, not a billboard */}
+      <header className="mx-auto flex max-w-[1400px] flex-wrap items-baseline justify-between gap-x-6 gap-y-2 px-6 pt-24 pb-6 md:px-8">
+        <DotMatrixHeading className="text-[clamp(1.6rem,3.4vw,2.75rem)]">
+          DATA BECOMES <span className="dm-amber">POLICY.</span>
+        </DotMatrixHeading>
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-3">
+          Camera → policy → robot.
+        </p>
+      </header>
+
+      {/* Unified workspace — one clean view of everything */}
+      <main className="mx-auto grid max-w-[1400px] grid-cols-1 gap-4 px-6 pb-16 md:px-8 lg:grid-cols-2">
+        {/* LEFT — robot / camera / dataset */}
+        <div className="flex flex-col gap-4">
           <RobotConfigManager
             selectedName={selectedName}
             selectedRecord={selectedRecord}
@@ -244,71 +263,80 @@ const Landing = () => {
             createRobot={createRobot}
             deleteRobot={deleteRobot}
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 flex flex-col gap-2">
-              <h3 className="font-semibold text-lg text-left h-10 flex items-center">
-                Dataset
-              </h3>
-              <DatasetPicker
-                datasets={datasets}
-                loading={datasetsLoading}
-                onPickExisting={handlePickExisting}
-                onOpenCustom={handleOpenCustom}
-                onCreateNew={handleCreateDataset}
-              >
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  className="w-full justify-between bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
-                >
-                  <span className="truncate text-gray-300">
-                    {datasetsLoading
-                      ? "Loading datasets…"
-                      : "Select or create a dataset…"}
-                  </span>
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </DatasetPicker>
-            </div>
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 flex flex-col gap-2">
-              <h3 className="font-semibold text-lg text-left h-10 flex items-center">
-                Create a model
-              </h3>
-              <Button
-                onClick={handleTrainingClick}
-                className="w-full bg-green-500 hover:bg-green-600 text-white"
-              >
-                Training
-              </Button>
-            </div>
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 flex flex-col gap-2">
-              <h3 className="font-semibold text-lg text-left h-10 flex items-center">
-                VR
-              </h3>
-              <Button
-                onClick={() => navigate("/vr")}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                VR Teleoperation
-              </Button>
-            </div>
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 flex flex-col gap-2">
-              <h3 className="font-semibold text-lg text-left h-10 flex items-center">
-                Cameras
-              </h3>
-              <Button
-                onClick={() => setShowCameraPreview(true)}
-                className="w-full bg-gray-700 hover:bg-gray-600 text-white border border-gray-600"
-              >
-                Preview Cameras
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-6">
-        <JobsSection />
+          <Panel title="Camera" meta="Ready">
+            <button
+              type="button"
+              onClick={() => setShowCameraPreview(true)}
+              className="flex h-28 w-full items-center justify-center gap-2 rounded-panel border border-dashed border-line bg-subtle text-ink-3 transition-colors hover:border-brand/50 hover:text-ink"
+            >
+              <Camera className="h-4 w-4" />
+              <span className="font-mono text-[11px] uppercase tracking-kicker">
+                Live preview · configure
+              </span>
+            </button>
+          </Panel>
+
+          <Panel title="Dataset">
+            <DatasetPicker
+              datasets={datasets}
+              loading={datasetsLoading}
+              onPickExisting={handlePickExisting}
+              onOpenCustom={handleOpenCustom}
+              onCreateNew={handleCreateDataset}
+            >
+              <Button
+                variant="outline"
+                role="combobox"
+                className="w-full justify-between normal-case tracking-normal"
+              >
+                <span className="truncate text-ink-2">
+                  {datasetsLoading ? "Loading datasets…" : datasetLabel}
+                </span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </DatasetPicker>
+          </Panel>
+        </div>
+
+        {/* RIGHT — quick actions + jobs */}
+        <div className="flex flex-col gap-4">
+          <Panel title="Workspace">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={openRecordingModal}
+                className="flex flex-col items-start gap-3 rounded-panel bg-brand p-4 text-surface transition-colors hover:bg-brand-muted active:opacity-70"
+              >
+                <Circle className="h-5 w-5 fill-current" />
+                <span className="font-mono text-xs uppercase tracking-[0.1em]">
+                  Record episode
+                </span>
+              </button>
+              {[
+                { icon: Play, label: "Train policy", onClick: handleTrainingClick },
+                { icon: Boxes, label: "VR teleop", onClick: () => navigate("/vr") },
+                { icon: Database, label: "Datasets", onClick: () => navigate("/upload") },
+              ].map(({ icon: Icon, label, onClick }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={onClick}
+                  className="flex flex-col items-start gap-3 rounded-panel border border-line bg-elevated p-4 text-ink-2 transition-colors hover:bg-subtle hover:text-ink active:opacity-70"
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-mono text-xs uppercase tracking-[0.1em]">
+                    {label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </Panel>
+
+          <Panel title="Jobs" bodyClassName="p-0">
+            <JobsSection />
+          </Panel>
+        </div>
       </main>
 
       <Footer />

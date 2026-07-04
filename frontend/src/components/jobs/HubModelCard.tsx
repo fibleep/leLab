@@ -1,8 +1,9 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { StatusDot } from "@/components/brand/primitives";
 import { HubModel } from "@/lib/jobsApi";
-import { ExternalLink, Lock, Upload } from "lucide-react";
+import { ExternalLink, Lock } from "lucide-react";
 
 interface Props {
   model: HubModel;
@@ -28,19 +29,16 @@ const HubModelCard: React.FC<Props> = ({ model }) => {
   return (
     <Card
       onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
-      className="bg-slate-800/50 border-slate-700 rounded-xl cursor-pointer hover:border-slate-500 transition-colors"
+      className="cursor-pointer transition-colors hover:border-ink-3"
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-sky-400">
-            <Upload className="w-3.5 h-3.5" />
-            Uploaded
-          </div>
+          <StatusDot status="info" label="Uploaded" />
           <Button
             variant="ghost"
             size="icon"
             asChild
-            className="h-7 w-7 text-slate-400 hover:text-white"
+            className="h-7 w-7"
             aria-label="View on Hub"
           >
             <a
@@ -55,15 +53,18 @@ const HubModelCard: React.FC<Props> = ({ model }) => {
         </div>
         <div>
           <div
-            className="text-white font-semibold truncate flex items-center gap-1.5"
+            className="font-sans text-sm font-medium text-ink truncate flex items-center gap-1.5"
             title={model.repo_id}
           >
             {model.private ? (
-              <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <Lock className="w-3.5 h-3.5 text-ink-3 shrink-0" />
             ) : null}
             <span className="truncate">{shortName}</span>
           </div>
-          <div className="text-xs text-slate-400 truncate" title={model.repo_id}>
+          <div
+            className="font-mono text-[11px] text-ink-3 truncate"
+            title={model.repo_id}
+          >
             {model.repo_id} · updated {relativeTime(model.last_modified)}
           </div>
         </div>

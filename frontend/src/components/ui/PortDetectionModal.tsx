@@ -149,12 +149,12 @@ const PortDetectionModal: React.FC<PortDetectionModalProps> = ({
       case "detecting":
         return (
           <div className="space-y-6 text-center">
-            <Loader2 className="w-16 h-16 text-blue-500 mx-auto animate-spin" />
+            <Loader2 className="w-16 h-16 text-brand mx-auto animate-spin" />
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-ink">
                 Unplug the {robotType} arm
               </h3>
-              <p className="text-gray-400">
+              <p className="text-ink-2">
                 Disconnect the {robotType} robot arm from USB. The port will be
                 detected automatically.
               </p>
@@ -163,7 +163,7 @@ const PortDetectionModal: React.FC<PortDetectionModalProps> = ({
               <Button
                 onClick={handleCancel}
                 variant="outline"
-                className="border-gray-500 hover:border-gray-200 text-gray-300 hover:text-white px-8 py-2"
+                className="px-8 py-2"
               >
                 Cancel
               </Button>
@@ -174,12 +174,12 @@ const PortDetectionModal: React.FC<PortDetectionModalProps> = ({
       case "success":
         return (
           <div className="space-y-6 text-center">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
+            <CheckCircle className="w-16 h-16 text-success mx-auto" />
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-ink">
                 Port Detected
               </h3>
-              <p className="text-xl font-mono text-green-400 bg-gray-800 px-4 py-2 rounded inline-block">
+              <p className="text-xl font-mono text-success bg-subtle px-4 py-2 rounded-panel inline-block">
                 {detectedPort}
               </p>
             </div>
@@ -189,26 +189,26 @@ const PortDetectionModal: React.FC<PortDetectionModalProps> = ({
       case "error":
         return (
           <div className="space-y-6 text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto" />
+            <AlertCircle className="w-16 h-16 text-error mx-auto" />
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-ink">
                 Detection Failed
               </h3>
-              <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">
-                <p className="text-red-400 text-sm">{error}</p>
+              <div className="bg-error/10 border border-error/30 rounded-panel p-3">
+                <p className="text-error text-sm">{error}</p>
               </div>
             </div>
             <div className="flex gap-4 justify-center">
               <Button
                 onClick={handleRetry}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-2"
+                className="px-8 py-2"
               >
                 Try Again
               </Button>
               <Button
                 onClick={handleCancel}
                 variant="outline"
-                className="border-gray-500 hover:border-gray-200 text-gray-300 hover:text-white px-8 py-2"
+                className="px-8 py-2"
               >
                 Cancel
               </Button>
@@ -223,12 +223,12 @@ const PortDetectionModal: React.FC<PortDetectionModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-gray-900 border-gray-800 text-white sm:max-w-[500px] p-8">
+      <DialogContent className="bg-elevated border-line text-ink sm:max-w-[500px] p-8">
         <DialogHeader>
-          <DialogTitle className="text-white text-center text-xl font-bold">
+          <DialogTitle className="text-ink text-center text-xl font-bold">
             Port Detection
           </DialogTitle>
-          <DialogDescription className="text-gray-400 text-center">
+          <DialogDescription className="text-ink-3 text-center">
             Detect the USB port for your {robotType} arm
           </DialogDescription>
         </DialogHeader>

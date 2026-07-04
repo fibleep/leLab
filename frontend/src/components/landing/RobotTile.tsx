@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { RobotArmMode, RobotRecord } from "@/hooks/useRobots";
+import { StatusDot } from "@/components/brand/primitives";
 import RobotSelector from "./RobotSelector";
 
 interface RobotTileProps {
@@ -54,21 +55,21 @@ const RobotTile: React.FC<RobotTileProps> = ({
       ? "Follower ready · VR & inference"
       : "Needs configuration"
     : null;
-  const statusColor = robot
+  const statusVariant: "success" | "warning" | "brand" | "muted" = robot
     ? isSingleArm
       ? robot.is_follower_ready
-        ? "text-green-400"
-        : "text-amber-400"
+        ? "success"
+        : "warning"
       : robot.is_clean
-      ? "text-green-400"
+      ? "success"
       : robot.is_follower_ready
-      ? "text-sky-400"
-      : "text-amber-400"
-    : "";
+      ? "brand"
+      : "warning"
+    : "muted";
   const teleopDisabled = !robot || isSingleArm || !robot.is_clean;
 
   return (
-    <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 flex flex-col gap-2 relative">
+    <div className="rounded-panel border border-line bg-elevated p-3 flex flex-col gap-2 relative">
       <div className="flex items-center gap-2">
         <div className="flex-1 min-w-0">
           <RobotSelector
@@ -80,9 +81,7 @@ const RobotTile: React.FC<RobotTileProps> = ({
           />
         </div>
         {status && (
-          <p className={`text-xs truncate shrink-0 ${statusColor}`}>
-            {status}
-          </p>
+          <StatusDot status={statusVariant} label={status} className="shrink-0" />
         )}
         {robot && (
           <div className="flex items-center gap-1 shrink-0">
@@ -91,7 +90,7 @@ const RobotTile: React.FC<RobotTileProps> = ({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8 text-gray-300 hover:text-white"
+                  className="h-8 w-8"
                   onClick={() => onConfigure(robot.name)}
                   aria-label="Configure"
                 >
@@ -105,7 +104,7 @@ const RobotTile: React.FC<RobotTileProps> = ({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                  className="h-8 w-8 text-error hover:text-error hover:bg-subtle"
                   onClick={() => setConfirmDelete(true)}
                   aria-label="Delete robot"
                 >
@@ -125,11 +124,7 @@ const RobotTile: React.FC<RobotTileProps> = ({
               <Button
                 onClick={() => onTeleop(robot)}
                 disabled={teleopDisabled}
-                className={`w-full ${
-                  teleopDisabled
-                    ? "bg-red-500/30 hover:bg-red-500/30 text-red-200 cursor-not-allowed"
-                    : "bg-yellow-500 hover:bg-yellow-600 text-white"
-                }`}
+                className="w-full"
               >
                 Teleoperation
               </Button>
@@ -149,10 +144,10 @@ const RobotTile: React.FC<RobotTileProps> = ({
 
       {robot && (
         <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-          <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Delete robot config?</DialogTitle>
-              <DialogDescription className="text-gray-400">
+              <DialogDescription>
                 This deletes the robot config file from disk. Calibration files
                 are not removed. This cannot be undone.
               </DialogDescription>
@@ -160,13 +155,12 @@ const RobotTile: React.FC<RobotTileProps> = ({
             <DialogFooter className="flex gap-2 justify-end">
               <Button
                 variant="outline"
-                className="border-gray-600 text-gray-300"
                 onClick={() => setConfirmDelete(false)}
               >
                 Cancel
               </Button>
               <Button
-                className="bg-red-500 hover:bg-red-600 text-white"
+                variant="destructive"
                 onClick={async () => {
                   setConfirmDelete(false);
                   await onDelete(robot.name);

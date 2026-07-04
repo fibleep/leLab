@@ -1,5 +1,6 @@
 import React from "react";
 import { Github, BookOpen } from "lucide-react";
+import { StatusDot } from "@/components/brand/primitives";
 
 const DiscordIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
@@ -14,48 +15,26 @@ const DiscordIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 const links = [
-  {
-    href: "https://github.com/huggingface/lerobot",
-    label: "GitHub",
-    Icon: Github,
-  },
-  {
-    href: "https://huggingface.co/docs/lerobot",
-    label: "Documentation",
-    Icon: BookOpen,
-  },
-  {
-    href: "https://discord.com/invite/s3KuuzsPFb",
-    label: "Discord",
-    Icon: DiscordIcon,
-  },
+  { href: "https://huggingface.co/docs/lerobot", label: "Documentation", Icon: BookOpen },
+  { href: "https://github.com/North-Star-AGI/horizon", label: "GitHub", Icon: Github },
+  { href: "https://discord.com/invite/s3KuuzsPFb", label: "Discord", Icon: DiscordIcon },
 ];
 
 const Footer: React.FC = () => {
   return (
-    <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-800 bg-black/95">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-4 text-sm text-gray-400 sm:flex-row">
-        <span>
-          Powered by{" "}
-          <a
-            href="https://github.com/huggingface/lerobot"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-gray-200 hover:text-white"
-          >
-            LeRobot
-          </a>
-        </span>
-        <nav className="flex items-center gap-4">
+    <footer className="border-t border-line bg-surface">
+      <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-between gap-3 px-6 py-4 sm:flex-row md:px-8">
+        <StatusDot status="success" label="System status · All systems go" />
+        <nav className="flex items-center gap-6">
           {links.map(({ href, label, Icon }) => (
             <a
               key={label}
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-gray-400 hover:text-white"
+              className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.1em] text-ink-3 transition-colors hover:text-ink"
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-3.5 w-3.5" />
               <span>{label}</span>
             </a>
           ))}

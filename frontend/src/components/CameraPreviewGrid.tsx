@@ -100,7 +100,7 @@ const CameraPreviewGrid: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-400">
+        <span className="text-sm text-ink-2">
           {isLoading
             ? "Scanning for cameras…"
             : `${devices.length} camera${devices.length === 1 ? "" : "s"} found`}
@@ -111,7 +111,7 @@ const CameraPreviewGrid: React.FC = () => {
           size="sm"
           onClick={() => refresh()}
           disabled={isLoading}
-          className="gap-1.5 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
+          className="gap-1.5"
         >
           <RefreshCw
             className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`}
@@ -121,15 +121,15 @@ const CameraPreviewGrid: React.FC = () => {
       </div>
 
       {gridError && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-700 bg-amber-900/40 p-4 text-sm text-amber-100">
+        <div className="flex items-start gap-3 rounded-panel border border-line bg-subtle p-4 text-sm text-warning">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{GRID_ERROR_MESSAGES[gridError]}</span>
         </div>
       )}
 
       {!isLoading && !gridError && devices.length === 0 && (
-        <div className="py-10 text-center text-gray-500">
-          <Camera className="mx-auto mb-4 h-12 w-12 text-gray-600" />
+        <div className="py-10 text-center text-ink-3">
+          <Camera className="mx-auto mb-4 h-12 w-12 text-ink-3" />
           <p>
             No cameras found. Connect a camera — for a phone, start Iriun on
             Mac and phone, then refresh.
@@ -145,7 +145,7 @@ const CameraPreviewGrid: React.FC = () => {
         </div>
       )}
 
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-ink-3">
         Camera names here match what <code>make find-cameras</code> reports;
         use that command for the exact index/resolution for recording configs.
       </p>
@@ -164,12 +164,12 @@ const CameraPreviewTile: React.FC<CameraPreviewTileProps> = ({ device }) => {
   );
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-700 bg-gray-900">
-      <div className="relative aspect-[4/3] bg-gray-800">
+    <div className="overflow-hidden rounded-panel border border-line bg-subtle">
+      <div className="relative aspect-[4/3] bg-subtle">
         {hasError ? (
           <div className="flex h-full w-full flex-col items-center justify-center px-4 text-center">
-            <VideoOff className="mb-2 h-8 w-8 text-gray-500" />
-            <span className="text-sm text-gray-500">
+            <VideoOff className="mb-2 h-8 w-8 text-ink-3" />
+            <span className="text-sm text-ink-3">
               {TILE_ERROR_MESSAGES[errorName] ?? "Preview failed"}
             </span>
           </div>
@@ -184,7 +184,7 @@ const CameraPreviewTile: React.FC<CameraPreviewTileProps> = ({ device }) => {
         )}
       </div>
       <div className="p-3">
-        <h5 className="truncate text-sm font-medium text-white" title={device.label}>
+        <h5 className="truncate text-sm font-medium text-ink" title={device.label}>
           {device.label}
         </h5>
       </div>
@@ -205,12 +205,12 @@ export const CameraPreviewDialog: React.FC<CameraPreviewDialogProps> = ({
   onOpenChange,
 }) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="max-h-[90vh] overflow-y-auto border-gray-800 bg-gray-900 p-6 text-white sm:max-w-4xl">
+    <DialogContent className="max-h-[90vh] overflow-y-auto border border-line bg-elevated p-6 sm:max-w-4xl">
       <DialogHeader>
-        <DialogTitle className="text-xl font-bold text-white">
+        <DialogTitle className="font-mono text-sm uppercase tracking-[0.1em] text-ink">
           Camera Preview
         </DialogTitle>
-        <DialogDescription className="text-gray-400">
+        <DialogDescription className="text-ink-3">
           Live view of every camera the browser can see — frame your shot
           before recording.
         </DialogDescription>

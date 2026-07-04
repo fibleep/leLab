@@ -245,17 +245,16 @@ const JobsSection: React.FC = () => {
     untrackedHubInactive.length;
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-white">Jobs</h2>
+    <section className="space-y-6 p-5">
+      <div className="flex items-center justify-end gap-3">
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-3 pointer-events-none" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search jobs"
-              className="h-8 w-48 sm:w-60 pl-8 bg-slate-800/50 border-slate-700 text-sm text-white placeholder:text-slate-500"
+              className="h-8 w-48 sm:w-60 pl-8 bg-subtle border-line text-sm text-ink"
               aria-label="Search jobs"
             />
           </div>
@@ -263,7 +262,7 @@ const JobsSection: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setImportModalOpen(true)}
-            className="h-8 border-slate-700 bg-slate-800/50 text-slate-200 hover:text-white"
+            className="h-8"
           >
             <Download className="w-3.5 h-3.5 mr-1.5" />
             Import model
@@ -272,7 +271,7 @@ const JobsSection: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={refresh}
-            className="h-7 w-7 text-slate-400 hover:text-white"
+            className="h-7 w-7"
             aria-label="Refresh jobs"
           >
             <RefreshCw className="w-4 h-4" />
@@ -280,20 +279,26 @@ const JobsSection: React.FC = () => {
         </div>
       </div>
 
-      {error ? <p className="text-sm text-red-300">Couldn't load jobs: {error}</p> : null}
+      {error ? (
+        <p className="font-mono text-xs text-error">
+          Couldn't load jobs: {error}
+        </p>
+      ) : null}
 
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="group flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-slate-400 hover:text-white transition-colors">
+        <CollapsibleTrigger className="group flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3 hover:text-ink transition-colors">
           <ChevronRight className="w-3.5 h-3.5 transition-transform group-data-[state=open]:rotate-90" />
           Local jobs ({localActive.length})
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-3">
           {localActive.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              {query
-                ? "No local jobs match your search."
-                : "No active local jobs. Start one from the Training page."}
-            </p>
+            <div className="rounded-panel border border-dashed border-line px-4 py-6">
+              <p className="font-mono text-xs text-ink-3">
+                {query
+                  ? "No local jobs match your search."
+                  : "No active local jobs. Start one from the Training page."}
+              </p>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {localActive.map((job) => (
@@ -312,9 +317,9 @@ const JobsSection: React.FC = () => {
 
       {importedJobs.length > 0 ? (
         <>
-          <div className="border-t border-slate-700" />
+          <div className="border-t border-line-soft" />
           <Collapsible defaultOpen>
-            <CollapsibleTrigger className="group flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-slate-400 hover:text-white transition-colors">
+            <CollapsibleTrigger className="group flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3 hover:text-ink transition-colors">
               <ChevronRight className="w-3.5 h-3.5 transition-transform group-data-[state=open]:rotate-90" />
               Imported models ({importedJobs.length})
             </CollapsibleTrigger>
@@ -335,10 +340,10 @@ const JobsSection: React.FC = () => {
         </>
       ) : null}
 
-      <div className="border-t border-slate-700" />
+      <div className="border-t border-line-soft" />
 
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="group flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-slate-400 hover:text-white transition-colors">
+        <CollapsibleTrigger className="group flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3 hover:text-ink transition-colors">
           <ChevronRight className="w-3.5 h-3.5 transition-transform group-data-[state=open]:rotate-90" />
           Online jobs (
           {trackedCloudActive.length +
@@ -348,15 +353,19 @@ const JobsSection: React.FC = () => {
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-3">
           {!hubAuthenticated && trackedCloudJobs.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              Sign in with Hugging Face to see your cloud jobs.
-            </p>
+            <div className="rounded-panel border border-dashed border-line px-4 py-6">
+              <p className="font-mono text-xs text-ink-3">
+                Sign in with Hugging Face to see your cloud jobs.
+              </p>
+            </div>
           ) : trackedCloudActive.length === 0 &&
             untrackedHubActive.length === 0 &&
             untrackedHubModels.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              {query ? "No online jobs match your search." : "No active cloud jobs."}
-            </p>
+            <div className="rounded-panel border border-dashed border-line px-4 py-6">
+              <p className="font-mono text-xs text-ink-3">
+                {query ? "No online jobs match your search." : "No active cloud jobs."}
+              </p>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {trackedCloudActive.map((job) => (
@@ -381,7 +390,7 @@ const JobsSection: React.FC = () => {
 
       {untrackedCount > 0 ? (
         <Collapsible>
-          <CollapsibleTrigger className="group flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400 hover:text-white transition-colors">
+          <CollapsibleTrigger className="group flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-3 hover:text-ink transition-colors">
             <ChevronRight className="w-3.5 h-3.5 transition-transform group-data-[state=open]:rotate-90" />
             Untracked ({untrackedCount})
           </CollapsibleTrigger>

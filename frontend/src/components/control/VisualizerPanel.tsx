@@ -24,21 +24,21 @@ const VisualizerPanel: React.FC<VisualizerPanelProps> = ({
         className
       )}
     >
-      <div className="bg-gray-900 rounded-lg p-4 flex-1 flex flex-col">
+      <div className="bg-elevated border border-line rounded-panel p-4 flex-1 flex flex-col">
         <div className="flex items-center gap-4 mb-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={onGoBack}
-            className="text-gray-400 hover:text-white hover:bg-gray-800 flex-shrink-0"
+            className="flex-shrink-0"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <Logo iconOnly={true} />
-          <div className="w-px h-6 bg-gray-700" />
-          <h2 className="text-xl font-medium text-gray-200">Teleoperation</h2>
+          <div className="w-px h-6 bg-line" />
+          <h2 className="font-mono text-sm uppercase tracking-[0.1em] text-ink">Teleoperation</h2>
         </div>
-        <div className="flex-1 bg-black rounded border border-gray-800 min-h-[50vh] lg:min-h-0">
+        <div className="flex-1 bg-subtle rounded-panel border border-line min-h-[50vh] lg:min-h-0 overflow-hidden">
           <UrdfViewer />
         </div>
       </div>

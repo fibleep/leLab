@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -11,9 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import {
   ArrowLeft,
@@ -25,12 +22,13 @@ import {
   Loader2,
   Play,
   Square,
-  Circle,
   Camera,
   ShieldQuestion,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import Logo from "@/components/Logo";
+import TopNav from "@/components/nav/TopNav";
+import Footer from "@/components/Footer";
+import { Panel, Kicker, StatusDot, StepRow } from "@/components/brand/primitives";
 import PortDetectionButton from "@/components/ui/PortDetectionButton";
 import PortDetectionModal from "@/components/ui/PortDetectionModal";
 import { useApi } from "@/contexts/ApiContext";
@@ -489,44 +487,44 @@ const Calibration = () => {
     switch (calibrationStatus.status) {
       case "idle":
         return {
-          color: "bg-slate-500",
-          icon: <Settings className="w-4 h-4" />,
+          tone: "text-ink-3",
+          icon: <Settings className="h-4 w-4" />,
           text: "Idle",
         };
       case "connecting":
         return {
-          color: "bg-yellow-500",
-          icon: <Loader2 className="w-4 h-4 animate-spin" />,
+          tone: "text-warning",
+          icon: <Loader2 className="h-4 w-4 animate-spin" />,
           text: "Connecting",
         };
       case "recording":
         return {
-          color: "bg-purple-500",
-          icon: <Activity className="w-4 h-4" />,
+          tone: "text-brand",
+          icon: <Activity className="h-4 w-4" />,
           text: "Recording Ranges",
         };
       case "completed":
         return {
-          color: "bg-green-500",
-          icon: <CheckCircle className="w-4 h-4" />,
+          tone: "text-success",
+          icon: <CheckCircle className="h-4 w-4" />,
           text: "Completed",
         };
       case "error":
         return {
-          color: "bg-red-500",
-          icon: <XCircle className="w-4 h-4" />,
+          tone: "text-error",
+          icon: <XCircle className="h-4 w-4" />,
           text: "Error",
         };
       case "stopping":
         return {
-          color: "bg-orange-500",
-          icon: <Square className="w-4 h-4" />,
+          tone: "text-warning",
+          icon: <Square className="h-4 w-4" />,
           text: "Stopping",
         };
       default:
         return {
-          color: "bg-slate-500",
-          icon: <Settings className="w-4 h-4" />,
+          tone: "text-ink-3",
+          icon: <Settings className="h-4 w-4" />,
           text: "Unknown",
         };
     }
@@ -535,194 +533,191 @@ const Calibration = () => {
   const statusDisplay = getStatusDisplay();
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="text-slate-400 hover:text-white hover:bg-slate-800"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex items-center gap-3">
-            <Logo iconOnly />
-            <h1 className="text-3xl font-bold">
+    <div className="min-h-[100dvh] bg-surface text-ink">
+      <TopNav />
+
+      <main className="mx-auto max-w-[1400px] px-6 pb-16 pt-28 md:px-8">
+        {/* Header */}
+        <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <Kicker>Calibration</Kicker>
+            <h1 className="mt-2 font-mono text-2xl font-bold uppercase tracking-tight text-ink md:text-3xl">
               {robotName ? `Calibrate "${robotName}"` : "Device Calibration"}
             </h1>
           </div>
+          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
         </div>
 
         {!robotName && (
-          <Alert className="mb-6 bg-amber-900/40 border-amber-700 text-amber-100">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Open Calibration from a robot's gear icon on the Landing page.
-              Each robot has its own calibration; running this page directly is
-              not supported.
-            </AlertDescription>
-          </Alert>
+          <div className="mt-6 flex items-start gap-3 rounded-panel border border-line bg-subtle px-4 py-4">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+            <p className="font-sans text-sm leading-relaxed text-ink-2">
+              Open Calibration from a robot's gear icon on the Landing page. Each
+              robot has its own calibration; running this page directly is not
+              supported.
+            </p>
+          </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-slate-800/60 border-slate-700 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-200">
-                <Settings className="w-5 h-5 text-blue-400" />
-                Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="deviceType"
-                  className="text-sm font-medium text-slate-300"
-                >
-                  Device Type *
-                </Label>
-                <Select
-                  value={deviceType}
-                  onValueChange={handleDeviceTypeChange}
-                >
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white rounded-md">
-                    <SelectValue placeholder="Select device type" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                    <SelectItem value="teleop" className="hover:bg-slate-700">
-                      Teleoperator (Leader)
-                    </SelectItem>
-                    <SelectItem value="robot" className="hover:bg-slate-700">
-                      Robot (Follower)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          {/* LEFT — configuration + steps */}
+          <div className="flex flex-col gap-5">
+            <Panel title="Configuration">
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="deviceType"
+                    className="font-mono text-[11px] uppercase tracking-kicker text-ink-2"
+                  >
+                    Device type *
+                  </Label>
+                  <Select
+                    value={deviceType}
+                    onValueChange={handleDeviceTypeChange}
+                  >
+                    <SelectTrigger className="bg-subtle">
+                      <SelectValue placeholder="Select device type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="teleop">
+                        Teleoperator (Leader)
+                      </SelectItem>
+                      <SelectItem value="robot">Robot (Follower)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label
-                  htmlFor="port"
-                  className="text-sm font-medium text-slate-300"
-                >
-                  Port *
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="port"
-                    value={port}
-                    onChange={(e) => setPort(e.target.value)}
-                    onBlur={(e) => persistPort(e.target.value)}
-                    placeholder="/dev/tty.usbmodem..."
-                    className="bg-slate-700 border-slate-600 text-white rounded-md flex-1"
-                  />
-                  <PortDetectionButton
-                    onClick={handlePortDetection}
-                    robotType={deviceType === "robot" ? "follower" : "leader"}
-                    className="border-slate-600 hover:border-blue-500 text-slate-400 hover:text-blue-400 bg-slate-700 hover:bg-slate-600"
-                  />
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="port"
+                    className="font-mono text-[11px] uppercase tracking-kicker text-ink-2"
+                  >
+                    Port *
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="port"
+                      value={port}
+                      onChange={(e) => setPort(e.target.value)}
+                      onBlur={(e) => persistPort(e.target.value)}
+                      placeholder="/dev/tty.usbmodem…"
+                      className="flex-1 bg-subtle font-mono"
+                    />
+                    <PortDetectionButton
+                      onClick={handlePortDetection}
+                      robotType={deviceType === "robot" ? "follower" : "leader"}
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t border-line-soft pt-2">
+                  {!calibrationStatus.calibration_active ? (
+                    <Button
+                      onClick={handleStartCalibration}
+                      size="lg"
+                      className="w-full rounded-full"
+                      disabled={!robotName || !deviceType || !port}
+                    >
+                      <Play className="h-4 w-4" />
+                      Start Calibration
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleStopCalibration}
+                      variant="destructive"
+                      size="lg"
+                      className="w-full rounded-full"
+                    >
+                      <Square className="h-4 w-4" />
+                      Cancel Calibration
+                    </Button>
+                  )}
                 </div>
               </div>
+            </Panel>
 
-              <Separator className="bg-slate-700" />
-
-              <div className="flex flex-col gap-3">
-                {!calibrationStatus.calibration_active ? (
-                  <Button
-                    onClick={handleStartCalibration}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full py-6 text-lg"
-                    disabled={!robotName || !deviceType || !port}
-                  >
-                    <Play className="w-5 h-5 mr-2" />
-                    Start Calibration
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleStopCalibration}
-                    variant="destructive"
-                    className="w-full rounded-full py-6 text-lg"
-                  >
-                    <Square className="w-5 h-5 mr-2" />
-                    Cancel Calibration
-                  </Button>
-                )}
-              </div>
-
-              {robot && (
-                <div className="space-y-2 pt-2">
-                  <div className="text-sm font-medium text-slate-300">
-                    Robot calibration
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    {robot.arm_mode === "single" ? (
-                      <Circle className="w-4 h-4 text-slate-600" />
+            {robot && (
+              <Panel title="Calibration steps" bodyClassName="py-1">
+                <StepRow
+                  index={1}
+                  active={
+                    robot.arm_mode !== "single" && deviceType === "teleop"
+                  }
+                  title={
+                    robot.arm_mode === "single"
+                      ? "Leader — Not used"
+                      : "Leader (Teleoperator)"
+                  }
+                  description={
+                    robot.arm_mode === "single"
+                      ? "Single-arm robot — no leader required."
+                      : robot.leader_config
+                      ? "Calibrated."
+                      : "Not calibrated yet."
+                  }
+                  action={
+                    robot.arm_mode === "single" ? (
+                      <StatusDot status="muted" label="N/A" />
                     ) : robot.leader_config ? (
-                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      <StatusDot status="success" label="Done" />
                     ) : (
-                      <Circle className="w-4 h-4 text-slate-500" />
-                    )}
-                    <span
-                      className={
-                        robot.arm_mode === "single"
-                          ? "text-slate-500"
-                          : robot.leader_config
-                          ? "text-slate-200"
-                          : "text-slate-400"
-                      }
-                    >
-                      {robot.arm_mode === "single"
-                        ? "Leader — Not used (single-arm robot)"
-                        : "Leader (Teleoperator)"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    {robot.follower_config ? (
-                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      <StatusDot status="muted" label="Pending" />
+                    )
+                  }
+                />
+                <StepRow
+                  index={2}
+                  last
+                  active={deviceType === "robot"}
+                  title="Follower (Robot)"
+                  description={
+                    robot.follower_config
+                      ? "Calibrated."
+                      : "Not calibrated yet."
+                  }
+                  action={
+                    robot.follower_config ? (
+                      <StatusDot status="success" label="Done" />
                     ) : (
-                      <Circle className="w-4 h-4 text-slate-500" />
-                    )}
-                    <span
-                      className={
-                        robot.follower_config
-                          ? "text-slate-200"
-                          : "text-slate-400"
-                      }
-                    >
-                      Follower (Robot)
-                    </span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                      <StatusDot status="muted" label="Pending" />
+                    )
+                  }
+                />
+              </Panel>
+            )}
+          </div>
 
-          <Card className="bg-slate-800/60 border-slate-700 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-200">
-                <Activity className="w-5 h-5 text-teal-400" />
-                Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-slate-900/50 rounded-md">
-                <span className="text-slate-300">Status:</span>
-                <Badge
-                  className={`${statusDisplay.color} text-white rounded-md`}
+          {/* RIGHT — status */}
+          <Panel title="Status">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-panel border border-line bg-subtle px-3 py-2.5">
+                <span className="font-mono text-[11px] uppercase tracking-kicker text-ink-3">
+                  Status
+                </span>
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-kicker",
+                    statusDisplay.tone
+                  )}
                 >
                   {statusDisplay.icon}
-                  <span className="ml-2">{statusDisplay.text}</span>
-                </Badge>
+                  {statusDisplay.text}
+                </span>
               </div>
 
               {calibrationStatus.status === "recording" &&
                 calibrationStatus.recorded_ranges && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-purple-400" />
-                      <span className="text-sm font-medium text-slate-300">
-                        Live Position Data
+                      <Activity className="h-4 w-4 text-brand" />
+                      <span className="font-mono text-[11px] uppercase tracking-kicker text-ink-2">
+                        Live position data
                       </span>
                     </div>
-                    <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                    <div className="rounded-panel border border-line bg-elevated p-4">
                       <div className="space-y-3">
                         {Object.entries(calibrationStatus.recorded_ranges).map(
                           ([motor, range]) => {
@@ -742,43 +737,40 @@ const Calibration = () => {
                               <div key={motor} className="space-y-2">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-white font-semibold text-sm">
+                                    <span className="font-mono text-sm font-bold text-ink">
                                       {motor}
                                     </span>
                                     {rangeComplete && (
                                       <CheckCircle
-                                        className="w-4 h-4 text-green-400"
+                                        className="h-4 w-4 text-success"
                                         aria-label="Range complete"
                                       />
                                     )}
                                   </div>
-                                  <span className="text-slate-300 text-xs font-mono">
+                                  <span className="font-mono text-xs tabular-nums text-ink-2">
                                     {range.current}
                                   </span>
                                 </div>
                                 <div className="relative">
-                                  <div className="w-full bg-slate-700 rounded-full h-3">
-                                    <div
-                                      className="bg-slate-600 h-3 rounded-full relative"
-                                      style={{ width: "100%" }}
-                                    >
+                                  <div className="h-2.5 w-full rounded-full bg-subtle">
+                                    <div className="relative h-2.5 w-full rounded-full">
                                       <div
-                                        className={`absolute top-0 w-1 h-3 rounded-full transition-all duration-100 ${
+                                        className={cn(
+                                          "absolute top-0 h-2.5 w-1 -translate-x-1/2 rounded-full transition-all duration-100",
                                           rangeComplete
-                                            ? "bg-green-400"
-                                            : "bg-yellow-400"
-                                        }`}
+                                            ? "bg-success"
+                                            : "bg-brand"
+                                        )}
                                         style={{
                                           left: `${Math.max(
                                             0,
                                             Math.min(100, progressPercent)
                                           )}%`,
-                                          transform: "translateX(-50%)",
                                         }}
                                       />
                                     </div>
                                   </div>
-                                  <div className="flex justify-between text-xs text-slate-400 mt-1">
+                                  <div className="mt-1 flex justify-between font-mono text-[11px] tabular-nums text-ink-3">
                                     <span>{range.min}</span>
                                     <span>{range.max}</span>
                                   </div>
@@ -793,12 +785,12 @@ const Calibration = () => {
                 )}
 
               {calibrationStatus.status === "connecting" && (
-                <Alert className="bg-yellow-900/50 border-yellow-700 text-yellow-200">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
+                <div className="flex items-start gap-3 rounded-panel border border-line bg-subtle px-4 py-3">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+                  <p className="font-sans text-sm text-ink-2">
                     Connecting to the device. Please ensure it's connected.
-                  </AlertDescription>
-                </Alert>
+                  </p>
+                </div>
               )}
 
               {calibrationStatus.status === "recording" && (() => {
@@ -815,43 +807,40 @@ const Calibration = () => {
                   );
                 return (
                   <div className="space-y-3">
-                    <div className="flex justify-center">
-                      <Button
-                        onClick={handleCompleteStep}
-                        disabled={!calibrationStatus.calibration_active}
-                        className={`px-8 py-3 rounded-full transition-colors ${
-                          allComplete
-                            ? "bg-green-600 hover:bg-green-700"
-                            : "bg-orange-500 hover:bg-orange-600"
-                        }`}
-                      >
-                        {allComplete ? (
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                        ) : (
-                          <AlertCircle className="w-4 h-4 mr-2" />
-                        )}
-                        Save Calibration
-                      </Button>
+                    <Button
+                      onClick={handleCompleteStep}
+                      disabled={!calibrationStatus.calibration_active}
+                      size="lg"
+                      className="w-full rounded-full"
+                    >
+                      {allComplete ? (
+                        <CheckCircle className="h-4 w-4" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4" />
+                      )}
+                      Save Calibration
+                    </Button>
+                    <div className="flex items-start gap-3 rounded-panel border border-line bg-subtle px-4 py-3">
+                      <Activity className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                      <p className="font-sans text-sm text-ink-2">
+                        <strong className="font-medium text-ink">
+                          Important:
+                        </strong>{" "}
+                        Move EACH joint through its full range. A check appears
+                        next to each joint once its range is wide enough.
+                      </p>
                     </div>
-                    <Alert className="bg-purple-900/50 border-purple-700 text-purple-200">
-                      <Activity className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Important:</strong> Move EACH joint through its
-                        full range. A check appears next to each joint once its
-                        range is wide enough.
-                      </AlertDescription>
-                    </Alert>
                   </div>
                 );
               })()}
 
               {calibrationStatus.status === "completed" && (
-                <Alert className="bg-green-900/50 border-green-700 text-green-200">
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Calibration completed successfully!
-                  </AlertDescription>
-                </Alert>
+                <div className="flex items-start gap-3 rounded-panel border border-line bg-subtle px-4 py-3">
+                  <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                  <p className="font-sans text-sm text-ink-2">
+                    Calibration completed successfully.
+                  </p>
+                </div>
               )}
 
               {calibrationStatus.status === "error" &&
@@ -859,53 +848,44 @@ const Calibration = () => {
                 (calibrationStatus.error.startsWith(
                   DISCONTINUITY_ERROR_PREFIX
                 ) ? (
-                  <Alert className="bg-red-900/50 border-red-700 text-red-200">
-                    <XCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      <div className="font-semibold text-base mb-1">
+                  <div className="flex items-start gap-3 rounded-panel border border-error px-4 py-3">
+                    <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-error" />
+                    <div>
+                      <div className="mb-1 font-sans text-sm font-medium text-ink">
                         Motor discontinuity detected
                       </div>
-                      <div>
+                      <p className="font-sans text-sm leading-relaxed text-ink-2">
                         Make sure to start the calibration with the robot in a
                         middle position — all joints in the middle of their
                         ranges. See the calibration demo below for the correct
                         starting pose.
-                      </div>
-                    </AlertDescription>
-                  </Alert>
+                      </p>
+                    </div>
+                  </div>
                 ) : (
-                  <Alert className="bg-red-900/50 border-red-700 text-red-200">
-                    <XCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Error:</strong> {calibrationStatus.error}
-                    </AlertDescription>
-                  </Alert>
+                  <div className="flex items-start gap-3 rounded-panel border border-error px-4 py-3">
+                    <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-error" />
+                    <p className="font-sans text-sm text-ink-2">
+                      <strong className="font-medium text-ink">Error:</strong>{" "}
+                      {calibrationStatus.error}
+                    </p>
+                  </div>
                 ))}
 
-              <div
-                ref={demoVideoRef}
-                className="bg-slate-900/50 p-4 rounded-lg border border-slate-700"
-              >
-                <h4 className="font-semibold mb-3 text-slate-200">
-                  Calibration Demo:
-                </h4>
-                <div className="relative rounded-lg overflow-hidden bg-slate-800">
-                  <video
-                    className="w-full h-auto rounded-md"
-                    controls
-                    preload="auto"
-                    muted
-                  >
+              <div ref={demoVideoRef}>
+                <Kicker>Calibration demo</Kicker>
+                <div className="mt-3 overflow-hidden rounded-panel border border-line bg-subtle">
+                  <video className="h-auto w-full" controls preload="auto" muted>
                     <source
                       src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/lerobot/calibrate_so101_2.mp4"
                       type="video/mp4"
                     />
-                    <p className="text-slate-400 text-sm text-center py-4">
+                    <p className="py-4 text-center font-sans text-sm text-ink-3">
                       Your browser does not support the video tag.
                       <br />
                       <a
                         href="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/lerobot/calibrate_so101_2.mp4"
-                        className="text-blue-400 hover:text-blue-300 underline"
+                        className="text-brand underline"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -915,21 +895,19 @@ const Calibration = () => {
                   </video>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </Panel>
         </div>
 
         {robotName && (
-          <Card className="bg-slate-800/60 border-slate-700 backdrop-blur-sm mt-6">
-            <CardHeader className="flex-row items-center justify-between space-y-0">
-              <CardTitle className="flex items-center gap-2 text-slate-200">
-                <Settings className="w-5 h-5 text-blue-400" />
-                Attached cameras
-              </CardTitle>
-              <div className="flex items-center gap-2">
+          <Panel
+            className="mt-5"
+            title="Attached cameras"
+            meta={
+              <span className="flex items-center gap-2">
                 <Label
                   htmlFor="cameras-toggle"
-                  className="text-sm text-slate-400 cursor-pointer"
+                  className="cursor-pointer font-mono text-[11px] uppercase tracking-kicker text-ink-3"
                 >
                   {camerasActive ? "On" : "Off"}
                 </Label>
@@ -937,46 +915,49 @@ const Calibration = () => {
                   id="cameras-toggle"
                   checked={camerasActive}
                   onCheckedChange={setCamerasActive}
-                  className="data-[state=checked]:bg-green-500"
+                  className="data-[state=checked]:bg-brand"
                   aria-label="Turn cameras on or off"
                 />
-              </div>
-            </CardHeader>
-            <CardContent>
-              {camerasActive ? (
-                <CameraConfiguration
-                  cameras={cameras}
-                  onCamerasChange={handleCamerasChange}
-                />
-              ) : (
-                <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-6 text-center space-y-3">
-                  <Camera className="w-10 h-10 mx-auto text-slate-500" />
-                  <div className="space-y-1">
-                    <p className="text-slate-200 font-medium">Cameras are off</p>
-                    <p className="text-sm text-slate-400 max-w-md mx-auto">
-                      Turn cameras on to scan for connected devices and preview
-                      them. The browser may briefly open a camera to read device
-                      labels, and configured cameras stay active while previews
-                      are visible; your browser will ask for camera permission.
-                      Nothing is recorded.
-                    </p>
-                    {cameras.length > 0 && (
-                      <p className="text-xs text-slate-500 pt-1">
-                        {cameras.length} camera
-                        {cameras.length === 1 ? "" : "s"} saved to this robot.
-                      </p>
-                    )}
-                  </div>
-                  <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
-                    <ShieldQuestion className="w-3.5 h-3.5" />
-                    You'll be asked to grant camera access.
+              </span>
+            }
+          >
+            {camerasActive ? (
+              <CameraConfiguration
+                cameras={cameras}
+                onCamerasChange={handleCamerasChange}
+              />
+            ) : (
+              <div className="space-y-3 rounded-panel border border-dashed border-line bg-subtle p-6 text-center">
+                <Camera className="mx-auto h-10 w-10 text-ink-3" />
+                <div className="space-y-1">
+                  <p className="font-sans text-sm font-medium text-ink">
+                    Cameras are off
                   </p>
+                  <p className="mx-auto max-w-md font-sans text-[13px] leading-relaxed text-ink-2">
+                    Turn cameras on to scan for connected devices and preview
+                    them. The browser may briefly open a camera to read device
+                    labels, and configured cameras stay active while previews
+                    are visible; your browser will ask for camera permission.
+                    Nothing is recorded.
+                  </p>
+                  {cameras.length > 0 && (
+                    <p className="pt-1 font-mono text-[11px] uppercase tracking-kicker text-ink-3">
+                      {cameras.length} camera
+                      {cameras.length === 1 ? "" : "s"} saved to this robot.
+                    </p>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <p className="flex items-center justify-center gap-1.5 font-sans text-[13px] text-ink-3">
+                  <ShieldQuestion className="h-3.5 w-3.5" />
+                  You'll be asked to grant camera access.
+                </p>
+              </div>
+            )}
+          </Panel>
         )}
-      </div>
+      </main>
+
+      <Footer />
 
       <PortDetectionModal
         open={showPortDetection}

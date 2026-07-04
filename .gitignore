@@ -71,3 +71,4 @@ HTTPS_SETUP.md
 
 # Self-signed dev certs (regenerate per HTTPS_SETUP.md)
 certs/
+.gstack/

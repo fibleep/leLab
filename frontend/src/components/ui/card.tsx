@@ -2,6 +2,11 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/*
+ * North Star Horizon cards — outlined, not floated. No shadow, panel radius.
+ * See DESIGN.md "borders over boxes".
+ */
+
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -9,7 +14,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      "rounded-panel border border-line bg-elevated text-ink",
       className
     )}
     {...props}
@@ -36,7 +41,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
+      "font-mono text-sm font-bold uppercase tracking-[0.08em] leading-none text-ink",
       className
     )}
     {...props}
@@ -50,7 +55,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("font-sans text-sm text-ink-3", className)}
     {...props}
   />
 ))

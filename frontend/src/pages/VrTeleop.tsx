@@ -5,6 +5,9 @@ import { Box3, Vector3 } from "three";
 import URDFManipulator from "urdf-loader/src/urdf-manipulator-element.js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import TopNav from "@/components/nav/TopNav";
+import Footer from "@/components/Footer";
+import { StatusDot } from "@/components/brand/primitives";
 import { useToast } from "@/hooks/use-toast";
 import { useApi } from "@/contexts/ApiContext";
 import { useRobots } from "@/hooks/useRobots";
@@ -258,53 +261,38 @@ const VrTeleop = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-2 sm:p-4">
-      <div className="mx-auto max-w-7xl flex flex-col gap-4">
+    <div className="min-h-screen bg-surface text-ink">
+      <TopNav />
+      <main className="mx-auto max-w-[1400px] flex flex-col gap-4 px-6 pb-12 pt-28 md:px-8">
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
             size="icon"
             onClick={() => navigate("/")}
-            className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
             aria-label="Back to home"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-xl font-semibold">VR Teleoperation</h1>
-          <div
-            className={`ml-auto flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-mono ${
-              isConnected
-                ? "bg-green-900/70 text-green-300"
-                : "bg-red-900/70 text-red-300"
-            }`}
-          >
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isConnected ? "bg-green-400" : "bg-red-400"
-              }`}
+          <h1 className="font-mono text-sm uppercase tracking-[0.1em] text-ink">VR Teleoperation</h1>
+          <div className="ml-auto flex items-center rounded-full border border-line bg-elevated px-3 py-1.5">
+            <StatusDot
+              status={isConnected ? "success" : "error"}
+              label={isConnected ? "WebSocket connected" : "WebSocket disconnected"}
             />
-            {isConnected ? "WebSocket connected" : "WebSocket disconnected"}
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
-          <div className="relative h-[50vh] lg:h-[75vh] rounded-lg overflow-hidden border border-gray-700 bg-gradient-to-br from-gray-900 to-gray-800">
+          <div className="relative h-[50vh] lg:h-[75vh] rounded-panel overflow-hidden border border-line bg-gradient-to-br from-gray-900 to-gray-800">
             <div ref={containerRef} className="w-full h-full" />
             <div className="absolute bottom-4 left-4 z-10">
               {isInVr ? (
-                <Button
-                  onClick={handleExitVr}
-                  className="bg-red-500 hover:bg-red-600 text-white"
-                >
+                <Button variant="destructive" onClick={handleExitVr}>
                   <Glasses className="mr-2 h-4 w-4" />
                   Exit VR
                 </Button>
               ) : (
-                <Button
-                  onClick={handleEnterVr}
-                  disabled={!vrSupported}
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                >
+                <Button onClick={handleEnterVr} disabled={!vrSupported}>
                   <Glasses className="mr-2 h-4 w-4" />
                   {vrSupported === null
                     ? "Checking VR support…"
@@ -317,12 +305,12 @@ const VrTeleop = () => {
           </div>
 
           <div className="flex flex-col gap-4">
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 flex flex-col gap-3">
-              <h3 className="font-semibold text-lg">Backend session</h3>
-              <p className="text-sm text-gray-400">
+            <div className="bg-elevated border border-line rounded-panel p-4 flex flex-col gap-3">
+              <h3 className="font-mono text-sm uppercase tracking-[0.1em] text-ink">Backend session</h3>
+              <p className="font-sans text-[13px] text-ink-3">
                 Grip = move end-effector · Sticks = joints · Trigger = gripper
               </p>
-              <div className="text-sm font-mono text-gray-300">
+              <div className="font-mono text-xs tabular-nums text-ink-2">
                 {backendStatus === null
                   ? "Status: unavailable"
                   : backendStatus.active
@@ -332,13 +320,13 @@ const VrTeleop = () => {
               <Button
                 onClick={() => startBackendSession("virtual")}
                 disabled={isSessionBusy || backendStatus?.active}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                className="w-full"
               >
                 Start virtual session
               </Button>
               <div className="flex flex-col gap-2">
                 <label
-                  className="text-sm text-gray-400"
+                  className="font-mono text-[11px] uppercase tracking-kicker text-ink-3"
                   htmlFor="vr-follower-port"
                 >
                   Follower port
@@ -348,10 +336,9 @@ const VrTeleop = () => {
                   value={followerPort}
                   onChange={(e) => setFollowerPort(e.target.value)}
                   placeholder="/dev/tty.usbmodem…"
-                  className="bg-gray-900 border-gray-600 text-white"
                 />
                 <label
-                  className="text-sm text-gray-400"
+                  className="font-mono text-[11px] uppercase tracking-kicker text-ink-3"
                   htmlFor="vr-follower-config"
                 >
                   Follower config
@@ -361,12 +348,11 @@ const VrTeleop = () => {
                   value={followerConfig}
                   onChange={(e) => setFollowerConfig(e.target.value)}
                   placeholder="Calibration config name…"
-                  className="bg-gray-900 border-gray-600 text-white"
                 />
                 <Button
                   onClick={() => startBackendSession("real")}
                   disabled={isSessionBusy || backendStatus?.active}
-                  className="w-full bg-green-500 hover:bg-green-600 text-white"
+                  className="w-full"
                 >
                   Start real session
                 </Button>
@@ -375,24 +361,24 @@ const VrTeleop = () => {
                 onClick={stopBackendSession}
                 disabled={isSessionBusy || backendStatus?.active === false}
                 variant="outline"
-                className="w-full bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
+                className="w-full"
               >
                 Stop session
               </Button>
             </div>
 
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 flex flex-col gap-3">
-              <h3 className="font-semibold text-lg">Desktop joint control</h3>
-              <p className="text-sm text-gray-400">
+            <div className="bg-elevated border border-line rounded-panel p-4 flex flex-col gap-3">
+              <h3 className="font-mono text-sm uppercase tracking-[0.1em] text-ink">Desktop joint control</h3>
+              <p className="font-sans text-[13px] text-ink-3">
                 Sends the same joint commands as the VR controllers.
               </p>
               {JOINT_NAMES.map((name) => {
                 const [lower, upper] = JOINT_LIMITS[name];
                 return (
                   <div key={name} className="flex flex-col gap-1">
-                    <div className="flex justify-between text-sm">
-                      <label htmlFor={`vr-joint-${name}`}>{name}</label>
-                      <span className="font-mono text-gray-300">
+                    <div className="flex justify-between">
+                      <label htmlFor={`vr-joint-${name}`} className="font-mono text-xs text-ink-2">{name}</label>
+                      <span className="font-mono text-xs tabular-nums text-ink">
                         {jointValues[name].toFixed(2)} rad
                       </span>
                     </div>
@@ -406,7 +392,7 @@ const VrTeleop = () => {
                       onChange={(e) =>
                         handleSliderChange(name, Number(e.target.value))
                       }
-                      className="w-full accent-blue-500"
+                      className="w-full accent-brand"
                     />
                   </div>
                 );
@@ -414,7 +400,8 @@ const VrTeleop = () => {
             </div>
           </div>
         </div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 };

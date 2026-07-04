@@ -3,18 +3,18 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/*
+ * North Star Horizon badges — mono, uppercase, subtle backgrounds. See DESIGN.md.
+ */
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors",
   {
     variants: {
       variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
+        default: "border-brand/30 bg-brand-subtle text-brand",
+        secondary: "border-line bg-subtle text-ink-2",
+        destructive: "border-error/40 bg-transparent text-error",
+        outline: "border-line text-ink-2",
       },
     },
     defaultVariants: {

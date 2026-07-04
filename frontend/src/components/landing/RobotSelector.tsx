@@ -79,9 +79,9 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
           role="combobox"
           aria-expanded={open}
           disabled={isLoading}
-          className="w-full justify-between bg-gray-900 border-gray-700 text-white hover:bg-gray-700 hover:text-white font-normal"
+          className="w-full justify-between normal-case tracking-normal font-normal"
         >
-          <span className={cn("truncate", selectedName ? "" : "text-gray-400")}>
+          <span className={cn("truncate", selectedName ? "" : "text-ink-3")}>
             {isLoading
               ? "Loading..."
               : selectedName ?? "Select a robot or type a new name"}
@@ -90,11 +90,11 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="p-0 bg-gray-800 border-gray-700 text-white"
+        className="p-0"
         style={{ width: "var(--radix-popover-trigger-width)" }}
         align="start"
       >
-        <Command className="bg-gray-800">
+        <Command>
           <CommandInput
             placeholder="Search or type new name..."
             value={query}
@@ -108,11 +108,10 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
                 handleCreate();
               }
             }}
-            className="text-white"
           />
           <CommandList>
             {availableNames.length === 0 && (
-              <CommandEmpty className="py-4 text-sm text-gray-400 text-center">
+              <CommandEmpty className="py-4 text-sm text-ink-3 text-center">
                 No robots yet. Type a name to create one.
               </CommandEmpty>
             )}
@@ -123,7 +122,6 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
                     key={name}
                     value={name}
                     onSelect={() => handlePickExisting(name)}
-                    className="text-white aria-selected:bg-gray-700"
                   >
                     <Check
                       className={cn(
@@ -138,11 +136,11 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
             )}
           </CommandList>
           {choosingMode && canCreate ? (
-            <div className="border-t border-gray-700">
+            <div className="border-t border-line">
               <button
                 type="button"
                 onClick={() => setChoosingMode(false)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-gray-400 hover:bg-gray-700 hover:text-white"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-ink-3 hover:bg-subtle hover:text-ink"
               >
                 <ChevronLeft className="h-3 w-3" />
                 {`Create "${trimmed}" as…`}
@@ -150,7 +148,7 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
               <button
                 type="button"
                 onClick={() => handleCreateWithMode("single")}
-                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-white hover:bg-gray-700"
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-subtle"
               >
                 <Plus className="h-4 w-4 shrink-0" />
                 <span className="text-left">One robot — single arm (VR & inference)</span>
@@ -158,7 +156,7 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
               <button
                 type="button"
                 onClick={() => handleCreateWithMode("pair")}
-                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-white hover:bg-gray-700"
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-subtle"
               >
                 <Plus className="h-4 w-4 shrink-0" />
                 <span className="text-left">
@@ -171,7 +169,7 @@ const RobotSelector: React.FC<RobotSelectorProps> = ({
               type="button"
               onClick={handleCreate}
               disabled={createDisabled}
-              className="flex w-full items-center gap-2 border-t border-gray-700 px-3 py-2 text-sm text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:text-gray-500 disabled:hover:bg-transparent"
+              className="flex w-full items-center gap-2 border-t border-line px-3 py-2 text-sm text-ink hover:bg-subtle disabled:cursor-not-allowed disabled:text-ink-3 disabled:hover:bg-transparent"
             >
               <Plus className="h-4 w-4" />
               {createLabel}

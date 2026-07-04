@@ -1,16 +1,9 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { StatusDot } from "@/components/brand/primitives";
 import { HubJob } from "@/lib/jobsApi";
-import {
-  ExternalLink,
-  AlertTriangle,
-  CheckCircle2,
-  Loader2,
-  XCircle,
-  Clock,
-  HelpCircle,
-} from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 interface Props {
   job: HubJob;
@@ -27,51 +20,46 @@ function relativeTime(iso: string | null): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+type DotStatus = "brand" | "success" | "warning" | "error" | "muted";
+
 interface StagePresentation {
   label: string;
-  color: string;
-  Icon: React.ComponentType<{ className?: string }>;
-  spin?: boolean;
+  status: DotStatus;
 }
 
 const stagePresentation: Record<string, StagePresentation> = {
-  RUNNING: { label: "Running", color: "text-green-400", Icon: Loader2, spin: true },
-  QUEUED: { label: "Queued", color: "text-amber-400", Icon: Clock },
-  SCHEDULING: { label: "Scheduling", color: "text-amber-400", Icon: Clock },
-  COMPLETED: { label: "Done", color: "text-slate-400", Icon: CheckCircle2 },
-  FAILED: { label: "Failed", color: "text-red-400", Icon: XCircle },
+  RUNNING: { label: "Running", status: "brand" },
+  QUEUED: { label: "Queued", status: "warning" },
+  SCHEDULING: { label: "Scheduling", status: "warning" },
+  COMPLETED: { label: "Done", status: "success" },
+  FAILED: { label: "Failed", status: "error" },
   // HF API uses "CANCELED" (single L); accept both spellings.
-  CANCELED: { label: "Cancelled", color: "text-amber-400", Icon: AlertTriangle },
-  CANCELLED: { label: "Cancelled", color: "text-amber-400", Icon: AlertTriangle },
+  CANCELED: { label: "Cancelled", status: "warning" },
+  CANCELLED: { label: "Cancelled", status: "warning" },
 };
 
 const HubJobCard: React.FC<Props> = ({ job }) => {
   const stage = job.status?.stage?.toUpperCase() ?? "";
   const present: StagePresentation = stagePresentation[stage] ?? {
     label: stage || "Unknown",
-    color: "text-slate-400",
-    Icon: HelpCircle,
+    status: "muted",
   };
-  const Icon = present.Icon;
   const title =
     job.docker_image ?? job.space_id ?? `Job ${job.id.slice(0, 12)}…`;
 
   return (
     <Card
       onClick={() => window.open(job.url, "_blank", "noopener,noreferrer")}
-      className="bg-slate-800/50 border-slate-700 rounded-xl cursor-pointer hover:border-slate-500 transition-colors"
+      className="cursor-pointer transition-colors hover:border-ink-3"
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <div className={`flex items-center gap-1.5 text-xs font-semibold ${present.color}`}>
-            <Icon className={`w-3.5 h-3.5 ${present.spin ? "animate-spin" : ""}`} />
-            {present.label}
-          </div>
+          <StatusDot status={present.status} label={present.label} />
           <Button
             variant="ghost"
             size="icon"
             asChild
-            className="h-7 w-7 text-slate-400 hover:text-white"
+            className="h-7 w-7"
             aria-label="View on Hub"
           >
             <a
@@ -85,16 +73,22 @@ const HubJobCard: React.FC<Props> = ({ job }) => {
           </Button>
         </div>
         <div>
-          <div className="text-white font-semibold truncate" title={title}>
+          <div
+            className="font-sans text-sm font-medium text-ink truncate"
+            title={title}
+          >
             {title}
           </div>
-          <div className="text-xs text-slate-400 truncate">
+          <div className="font-mono text-[11px] text-ink-3 truncate">
             {job.flavor ?? "—"} · {relativeTime(job.created_at)}
             {job.owner ? ` · ${job.owner}` : ""}
           </div>
         </div>
         {job.status?.message ? (
-          <div className="text-xs text-slate-500 truncate" title={job.status.message}>
+          <div
+            className="font-mono text-[11px] text-ink-3 truncate"
+            title={job.status.message}
+          >
             {job.status.message}
           </div>
         ) : null}

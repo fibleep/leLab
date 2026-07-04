@@ -73,29 +73,29 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-gray-900 border-gray-800 text-white sm:max-w-[600px] p-8 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-elevated border border-line sm:max-w-[600px] p-8 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex justify-center items-center mb-4">
-            <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">REC</span>
+            <div className="w-8 h-8 bg-brand rounded-full flex items-center justify-center">
+              <span className="text-surface font-mono font-bold text-[11px] tracking-[0.1em]">REC</span>
             </div>
           </div>
-          <DialogTitle className="text-white text-center text-2xl font-bold">
+          <DialogTitle className="text-center font-mono text-base uppercase tracking-[0.1em] text-ink">
             Configure Recording
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-6 py-4">
-          <DialogDescription className="text-gray-400 text-base leading-relaxed text-center">
+          <DialogDescription className="text-ink-2 text-base leading-relaxed text-center">
             Pick a configured robot and dataset parameters for recording.
           </DialogDescription>
 
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">
+              <h3 className="font-mono text-sm uppercase tracking-[0.1em] text-ink border-b border-line-soft pb-2">
                 Robot Configuration
               </h3>
               {!robot ? (
-                <Alert className="bg-amber-900/40 border-amber-700 text-amber-100">
+                <Alert className="border-warning/40 bg-subtle text-warning">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     Select and configure a robot on the Landing page before
@@ -103,7 +103,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                   </AlertDescription>
                 </Alert>
               ) : !robot.is_clean ? (
-                <Alert className="bg-amber-900/40 border-amber-700 text-amber-100">
+                <Alert className="border-warning/40 bg-subtle text-warning">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     {robot.is_follower_ready ? (
@@ -124,8 +124,8 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                 </Alert>
               ) : (
                 <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                  <span className="text-slate-200">
+                  <CheckCircle className="w-4 h-4 text-success" />
+                  <span className="text-ink-2">
                     Recording with <strong>{robot.name}</strong>
                   </span>
                 </div>
@@ -133,14 +133,14 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">
+              <h3 className="font-mono text-sm uppercase tracking-[0.1em] text-ink border-b border-line-soft pb-2">
                 Dataset Configuration
               </h3>
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label
                     htmlFor="datasetName"
-                    className="text-sm font-medium text-gray-300"
+                    className="text-sm font-medium text-ink-2"
                   >
                     Dataset Name *
                   </Label>
@@ -153,23 +153,23 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                       )
                     }
                     placeholder="my_dataset"
-                    className="bg-gray-800 border-gray-700 text-white"
+                    className="bg-subtle"
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-ink-3">
                     Letters, numbers, <code>.</code> <code>_</code>{" "}
                     <code>-</code> only — other characters become{" "}
                     <code>_</code>.
                   </p>
                   {datasetName &&
                     (auth.status === "authenticated" ? (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-ink-3">
                         Will be saved as{" "}
-                        <span className="text-gray-300 font-mono">
+                        <span className="text-ink font-mono">
                           {auth.username}/{datasetName}
                         </span>
                       </p>
                     ) : auth.status === "unauthenticated" ? (
-                      <p className="text-xs text-amber-400/80">
+                      <p className="text-xs text-warning">
                         Log in to Hugging Face to set the repository owner.
                       </p>
                     ) : null)}
@@ -177,7 +177,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                 <div className="space-y-2">
                   <Label
                     htmlFor="singleTask"
-                    className="text-sm font-medium text-gray-300"
+                    className="text-sm font-medium text-ink-2"
                   >
                     Task Description *
                   </Label>
@@ -186,13 +186,13 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                     value={singleTask}
                     onChange={(e) => setSingleTask(e.target.value)}
                     placeholder="e.g., pick up the red block and place it on the blue square"
-                    className="bg-gray-800 border-gray-700 text-white"
+                    className="bg-subtle"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label
                     htmlFor="numEpisodes"
-                    className="text-sm font-medium text-gray-300"
+                    className="text-sm font-medium text-ink-2"
                   >
                     Number of Episodes
                   </Label>
@@ -204,14 +204,14 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                     onChange={(v) => {
                       if (v !== undefined) setNumEpisodes(v);
                     }}
-                    className="bg-gray-800 border-gray-700 text-white"
+                    className="bg-subtle"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label
                       htmlFor="episodeTimeS"
-                      className="text-sm font-medium text-gray-300"
+                      className="text-sm font-medium text-ink-2"
                     >
                       Episode duration (seconds)
                     </Label>
@@ -222,13 +222,13 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                       onChange={(v) => {
                         if (v !== undefined) setEpisodeTimeS(v);
                       }}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-subtle"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label
                       htmlFor="resetTimeS"
-                      className="text-sm font-medium text-gray-300"
+                      className="text-sm font-medium text-ink-2"
                     >
                       Reset duration (seconds)
                     </Label>
@@ -239,7 +239,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                       onChange={(v) => {
                         if (v !== undefined) setResetTimeS(v);
                       }}
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-subtle"
                     />
                   </div>
                 </div>
@@ -255,7 +255,7 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
             </div>
 
             <Collapsible className="space-y-4 group">
-              <CollapsibleTrigger className="flex items-center justify-between w-full text-lg font-semibold text-white border-b border-gray-700 pb-2">
+              <CollapsibleTrigger className="flex items-center justify-between w-full font-mono text-sm uppercase tracking-[0.1em] text-ink border-b border-line-soft pb-2">
                 <span>Advanced Parameters</span>
                 <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]:rotate-180" />
               </CollapsibleTrigger>
@@ -267,16 +267,16 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
                     onCheckedChange={(value) =>
                       setStreamingEncoding(value === true)
                     }
-                    className="mt-0.5 border-gray-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                    className="mt-0.5 border-line data-[state=checked]:bg-brand data-[state=checked]:border-brand"
                   />
                   <div className="space-y-1">
                     <Label
                       htmlFor="streamingEncoding"
-                      className="text-sm font-medium text-gray-200 cursor-pointer"
+                      className="text-sm font-medium text-ink-2 cursor-pointer"
                     >
                       Streaming video encoding
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-ink-3">
                       Encodes frames in real time during capture so each
                       episode saves almost instantly. Uncheck to fall back to
                       the slower PNG-then-encode flow.
@@ -291,14 +291,14 @@ const RecordingModal: React.FC<RecordingModalProps> = ({
             <Button
               onClick={onStart}
               disabled={!canStart}
-              className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white px-10 py-6 text-lg transition-all shadow-md shadow-red-500/30 hover:shadow-lg hover:shadow-red-500/40 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-10 py-6 text-lg disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Start Recording
             </Button>
             <Button
               onClick={() => onOpenChange(false)}
               variant="outline"
-              className="w-full sm:w-auto border-gray-500 hover:border-gray-200 px-10 py-6 text-lg text-zinc-500 bg-zinc-900 hover:bg-zinc-800"
+              className="w-full sm:w-auto px-10 py-6 text-lg"
             >
               Cancel
             </Button>

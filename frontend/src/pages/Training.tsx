@@ -5,7 +5,9 @@ import { useApi } from "@/contexts/ApiContext";
 import { useHfAuth } from "@/contexts/HfAuthContext";
 
 import { TrainingConfig, TrainingStatus, LogEntry } from "@/components/training/types";
-import TrainingHeader from "@/components/training/TrainingHeader";
+import TopNav from "@/components/nav/TopNav";
+import Footer from "@/components/Footer";
+import { Kicker, StatusDot } from "@/components/brand/primitives";
 import ConfigurationTab from "@/components/training/ConfigurationTab";
 import MonitoringStats from "@/components/training/monitoring/MonitoringStats";
 import TrainingLogs from "@/components/training/monitoring/TrainingLogs";
@@ -246,25 +248,33 @@ const ConfigurationMode: React.FC = () => {
 
   if (trainingExtraAvailable === null) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white p-4">
-        <div className="max-w-7xl mx-auto">
-          <TrainingHeader />
-          <div className="flex items-center justify-center py-24 text-slate-400">
-            <Loader2 className="w-6 h-6 animate-spin mr-3" />
+      <div className="min-h-screen bg-surface text-ink">
+        <TopNav />
+        <div className="mx-auto max-w-[1400px] px-6 md:px-8 pt-28 pb-16">
+          <div className="flex items-center justify-center py-24 font-mono text-sm uppercase tracking-[0.1em] text-ink-3">
+            <Loader2 className="w-5 h-5 animate-spin mr-3" />
             Checking training environment…
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   if (trainingExtraAvailable === false) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white p-4">
-        <div className="max-w-7xl mx-auto">
-          <TrainingHeader />
+      <div className="min-h-screen bg-surface text-ink">
+        <TopNav />
+        <div className="mx-auto max-w-[1400px] px-6 md:px-8 pt-28 pb-16">
+          <div className="mb-8">
+            <Kicker>Training</Kicker>
+            <h1 className="mt-2 font-mono text-2xl font-bold uppercase tracking-tight text-ink">
+              Configure training run
+            </h1>
+          </div>
           <TrainingExtraGate installHint={trainingExtraInstallHint} />
         </div>
+        <Footer />
       </div>
     );
   }
@@ -289,9 +299,15 @@ const ConfigurationMode: React.FC = () => {
     : undefined;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-4">
-      <div className="max-w-7xl mx-auto">
-        <TrainingHeader />
+    <div className="min-h-screen bg-surface text-ink">
+      <TopNav />
+      <div className="mx-auto max-w-[1400px] px-6 md:px-8 pt-28 pb-16">
+        <div className="mb-8">
+          <Kicker>Training</Kicker>
+          <h1 className="mt-2 font-mono text-2xl font-bold uppercase tracking-tight text-ink">
+            Configure training run
+          </h1>
+        </div>
         <HfAuthBanner />
         <ConfigurationTab
           config={trainingConfig}
@@ -309,7 +325,7 @@ const ConfigurationMode: React.FC = () => {
                 onClick={handleStart}
                 disabled={startDisabled}
                 size="lg"
-                className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6"
+                className="px-6"
               >
                 {isStarting ? (
                   <>
@@ -338,6 +354,7 @@ const ConfigurationMode: React.FC = () => {
           })()}
         </div>
       </div>
+      <Footer />
 
       {policyExtra && (
         <PolicyExtraDialog
@@ -517,46 +534,63 @@ const MonitoringMode: React.FC<{ jobId: string }> = ({ jobId }) => {
 
   if (error && !job) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white p-4">
-        <div className="max-w-7xl mx-auto space-y-4">
-          <Button variant="ghost" onClick={() => navigate("/")} className="text-slate-400">
+      <div className="min-h-screen bg-surface text-ink">
+        <TopNav />
+        <div className="mx-auto max-w-[1400px] space-y-4 px-6 pb-16 pt-28 md:px-8">
+          <Button variant="ghost" onClick={() => navigate("/")}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Jobs
           </Button>
-          <p className="text-red-300">Couldn't load job {jobId}: {error}</p>
+          <p className="font-mono text-sm text-error">
+            Couldn't load job {jobId}: {error}
+          </p>
         </div>
+        <Footer />
       </div>
     );
   }
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-center py-24 text-slate-400">
-          <Loader2 className="w-6 h-6 animate-spin mr-3" /> Loading job…
+      <div className="min-h-screen bg-surface text-ink">
+        <TopNav />
+        <div className="mx-auto flex max-w-[1400px] items-center justify-center px-6 pb-16 pt-28 font-mono text-sm uppercase tracking-[0.1em] text-ink-3 md:px-8">
+          <Loader2 className="w-5 h-5 animate-spin mr-3" /> Loading job…
         </div>
+        <Footer />
       </div>
     );
   }
 
   const isRunning = job.state === "running";
+  const stateStatus: "brand" | "success" | "error" | "muted" =
+    job.state === "running"
+      ? "brand"
+      : job.state === "done"
+        ? "success"
+        : job.state === "failed" || job.state === "interrupted"
+          ? "error"
+          : "muted";
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-surface text-ink">
+      <TopNav />
+      <div className="mx-auto max-w-[1400px] space-y-6 px-6 pb-16 pt-28 md:px-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => navigate("/")} className="text-slate-400 hover:text-white">
+            <Button variant="ghost" onClick={() => navigate("/")}>
               <ArrowLeft className="w-4 h-4 mr-2" /> Jobs
             </Button>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-semibold text-white">{job.name}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="font-mono text-xl font-bold uppercase tracking-tight text-ink">
+                  {job.name}
+                </h1>
                 {job.runner === "hf_cloud" ? (
-                  <span className="text-xs px-2 py-0.5 rounded bg-amber-900/40 text-amber-200 border border-amber-700">
+                  <span className="rounded-panel border border-line bg-brand-subtle px-2 py-0.5 font-mono text-[11px] uppercase tracking-kicker text-brand">
                     HF · {job.hf_flavor ?? "cloud"}
                   </span>
                 ) : (
-                  <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-200 border border-slate-600">
+                  <span className="rounded-panel border border-line bg-subtle px-2 py-0.5 font-mono text-[11px] uppercase tracking-kicker text-ink-2">
                     Local
                   </span>
                 )}
@@ -565,7 +599,7 @@ const MonitoringMode: React.FC<{ jobId: string }> = ({ jobId }) => {
                     href={`https://huggingface.co/${job.hf_repo_id}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs text-amber-300 hover:text-amber-200 underline"
+                    className="font-mono text-[11px] uppercase tracking-kicker text-ink-2 underline underline-offset-4 hover:text-ink"
                   >
                     View on Hub ↗
                   </a>
@@ -575,24 +609,28 @@ const MonitoringMode: React.FC<{ jobId: string }> = ({ jobId }) => {
                     href={job.wandb_run_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs text-yellow-300 hover:text-yellow-200 underline"
+                    className="font-mono text-[11px] uppercase tracking-kicker text-ink-2 underline underline-offset-4 hover:text-ink"
                   >
                     View on W&B ↗
                   </a>
                 )}
               </div>
-              <p className="text-xs text-slate-400">
-                {job.state}
-                {job.error_message ? ` — ${job.error_message}` : ""}
-              </p>
+              <div className="mt-1.5">
+                <StatusDot status={stateStatus} label={job.state} />
+                {job.error_message ? (
+                  <p className="mt-1 font-mono text-[11px] text-error">
+                    {job.error_message}
+                  </p>
+                ) : null}
+              </div>
             </div>
           </div>
           {isRunning ? (
-            <Button onClick={handleStop} className="bg-red-500 hover:bg-red-600 text-white">
+            <Button onClick={handleStop} variant="destructive">
               <Square className="w-4 h-4 mr-2" /> Stop
             </Button>
           ) : (
-            <Button onClick={handleDelete} variant="ghost" className="text-slate-400 hover:text-white">
+            <Button onClick={handleDelete} variant="ghost">
               <Trash2 className="w-4 h-4 mr-2" /> Delete
             </Button>
           )}
@@ -604,10 +642,14 @@ const MonitoringMode: React.FC<{ jobId: string }> = ({ jobId }) => {
           getProgressPercentage={getProgressPercentage}
           formatTime={formatTime}
         />
-        <div className="bg-slate-800/40 border border-slate-700 rounded-lg p-4 flex items-center gap-3">
-          <span className="text-sm font-semibold text-slate-300">Run inference</span>
+        <div className="flex items-center gap-3 rounded-panel border border-line bg-elevated p-4">
+          <span className="font-mono text-xs uppercase tracking-[0.1em] text-ink-2">
+            Run inference
+          </span>
           {checkpoints.length === 0 ? (
-            <span className="text-xs text-slate-500">No checkpoints yet — wait for the first save.</span>
+            <span className="font-sans text-[13px] italic text-ink-3">
+              No checkpoints yet — wait for the first save.
+            </span>
           ) : (
             <>
               <CheckpointDropdown
@@ -618,7 +660,6 @@ const MonitoringMode: React.FC<{ jobId: string }> = ({ jobId }) => {
               <Button
                 onClick={() => setInferenceModalOpen(true)}
                 disabled={selectedStep == null}
-                className="bg-green-500 hover:bg-green-600 text-white"
               >
                 <Play className="w-4 h-4 mr-2" />
                 Run on robot
@@ -635,6 +676,7 @@ const MonitoringMode: React.FC<{ jobId: string }> = ({ jobId }) => {
         />
         <TrainingLogs logs={logs} logContainerRef={logContainerRef} />
       </div>
+      <Footer />
     </div>
   );
 };

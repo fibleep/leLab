@@ -15,8 +15,8 @@ const CameraFeed: React.FC<CameraFeedProps> = ({ deviceId, label }) => {
   const showVideo = deviceId && !hasError;
 
   return (
-    <div className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden">
-      <div className="aspect-[4/3] bg-gray-800 relative">
+    <div className="bg-elevated rounded-panel border border-line overflow-hidden">
+      <div className="aspect-[4/3] bg-subtle relative">
         {showVideo ? (
           <video
             ref={videoRef}
@@ -27,15 +27,15 @@ const CameraFeed: React.FC<CameraFeedProps> = ({ deviceId, label }) => {
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center">
-            <VideoOff className="w-8 h-8 text-gray-500 mb-2" />
-            <span className="text-gray-500 text-sm">
+            <VideoOff className="w-8 h-8 text-ink-3 mb-2" />
+            <span className="font-mono text-[11px] uppercase tracking-kicker text-ink-3">
               {deviceId ? "Preview failed" : "No camera selected"}
             </span>
           </div>
         )}
       </div>
       {label && (
-        <div className="p-2 text-sm text-gray-300 truncate border-t border-gray-800">
+        <div className="p-2 font-mono text-xs text-ink-2 truncate border-t border-line-soft">
           {label}
         </div>
       )}

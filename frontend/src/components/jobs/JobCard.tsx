@@ -2,17 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { StatusDot } from "@/components/brand/primitives";
 import { JobRecord } from "@/lib/jobsApi";
-import {
-  Square,
-  X,
-  AlertTriangle,
-  CheckCircle2,
-  Loader2,
-  XCircle,
-  ExternalLink,
-  Play,
-} from "lucide-react";
+import { Square, X, ExternalLink, Play } from "lucide-react";
 import { useApi } from "@/contexts/ApiContext";
 import {
   JobCheckpoint,
@@ -35,21 +27,22 @@ function relativeTime(epochSec: number): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+type DotStatus = "brand" | "success" | "warning" | "error" | "muted";
+
 const statePresentation: Record<
   JobRecord["state"],
-  { label: string; color: string; Icon: React.ComponentType<{ className?: string }> }
+  { label: string; status: DotStatus }
 > = {
-  running: { label: "Running", color: "text-green-400", Icon: Loader2 },
-  done: { label: "Done", color: "text-slate-400", Icon: CheckCircle2 },
-  failed: { label: "Failed", color: "text-red-400", Icon: XCircle },
-  interrupted: { label: "Interrupted", color: "text-amber-400", Icon: AlertTriangle },
+  running: { label: "Running", status: "brand" },
+  done: { label: "Done", status: "success" },
+  failed: { label: "Failed", status: "error" },
+  interrupted: { label: "Interrupted", status: "warning" },
 };
 
 const JobCard: React.FC<Props> = ({ job, onStop, onDelete, onPlay }) => {
   const navigate = useNavigate();
   const { baseUrl, fetchWithHeaders } = useApi();
   const present = statePresentation[job.state];
-  const Icon = present.Icon;
   const isRunning = job.state === "running";
   const isImported = job.runner === "imported";
   const importedSource = job.hf_repo_id || job.output_dir;
@@ -130,22 +123,22 @@ const JobCard: React.FC<Props> = ({ job, onStop, onDelete, onPlay }) => {
       onClick={() => {
         if (!isImported) navigate(`/training/${job.id}`);
       }}
-      className={`bg-slate-800/50 border-slate-700 rounded-xl transition-colors ${
-        isImported ? "" : "cursor-pointer hover:border-slate-500"
+      className={`transition-colors ${
+        isImported ? "" : "cursor-pointer hover:border-ink-3"
       }`}
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <div className={`flex items-center gap-1.5 text-xs font-semibold ${present.color}`}>
-            <Icon className={`w-3.5 h-3.5 ${isRunning ? "animate-spin" : ""}`} />
-            {stateLabel}
-          </div>
+          <StatusDot
+            status={isImported ? "muted" : present.status}
+            label={stateLabel}
+          />
           {job.runner === "hf_cloud" && job.hf_job_url ? (
             <Button
               variant="ghost"
               size="icon"
               asChild
-              className="h-7 w-7 text-slate-400 hover:text-white"
+              className="h-7 w-7"
               aria-label="Open Hub job page"
             >
               <a
@@ -162,7 +155,7 @@ const JobCard: React.FC<Props> = ({ job, onStop, onDelete, onPlay }) => {
               variant="ghost"
               size="icon"
               onClick={handleAction}
-              className="h-7 w-7 text-slate-400 hover:text-white"
+              className="h-7 w-7"
               aria-label={isRunning ? "Stop job" : "Delete job"}
             >
               {isRunning ? <Square className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
@@ -170,7 +163,10 @@ const JobCard: React.FC<Props> = ({ job, onStop, onDelete, onPlay }) => {
           )}
         </div>
         <div>
-          <div className="text-white font-semibold truncate" title={job.name}>
+          <div
+            className="font-sans text-sm font-medium text-ink truncate"
+            title={job.name}
+          >
             {job.name}
           </div>
           {/* Imported subtitles are file paths — truncate the *start* (rtl
@@ -178,7 +174,7 @@ const JobCard: React.FC<Props> = ({ job, onStop, onDelete, onPlay }) => {
               visible. The leading LRM keeps the path's first "/" from being
               bidi-reordered to the wrong end. */}
           <div
-            className="text-xs text-slate-400 truncate"
+            className="font-mono text-[11px] text-ink-3 truncate"
             title={subtitle}
             style={isImported ? { direction: "rtl", textAlign: "left" } : undefined}
           >
@@ -186,12 +182,12 @@ const JobCard: React.FC<Props> = ({ job, onStop, onDelete, onPlay }) => {
           </div>
         </div>
         {showProgressBar ? (
-          <div className="relative h-5 w-full overflow-hidden rounded-md bg-slate-900 border border-slate-700">
+          <div className="relative h-5 w-full overflow-hidden rounded-panel bg-subtle border border-line">
             <div
-              className="h-full bg-gradient-to-r from-blue-500 to-sky-400 transition-[width] duration-500"
+              className="h-full bg-brand transition-[width] duration-500"
               style={{ width: `${progressPct}%` }}
             />
-            <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-white tabular-nums drop-shadow">
+            <div className="absolute inset-0 flex items-center justify-center font-mono text-[11px] text-ink tabular-nums">
               {isStarting ? "Training starting…" : `${progressPct.toFixed(1)}%`}
             </div>
           </div>
@@ -206,7 +202,7 @@ const JobCard: React.FC<Props> = ({ job, onStop, onDelete, onPlay }) => {
             <Button
               size="icon"
               onClick={handlePlay}
-              className="h-8 w-8 bg-green-500 hover:bg-green-600 text-white"
+              className="h-8 w-8"
               aria-label="Run inference with this checkpoint"
             >
               <Play className="w-4 h-4" />

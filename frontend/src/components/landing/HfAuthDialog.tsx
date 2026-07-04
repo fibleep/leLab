@@ -45,26 +45,26 @@ const HfAuthDialog: React.FC<HfAuthDialogProps> = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-gray-900 border-gray-800 text-white">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-amber-200">
+          <DialogTitle>
             Hugging Face CLI not configured
           </DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogDescription>
             Uploads, training, and replay-from-Hub require a logged-in HF CLI.
             Run this in a terminal:
           </DialogDescription>
         </DialogHeader>
-        <pre className="bg-gray-950 p-3 rounded border border-gray-700 text-xs sm:text-sm overflow-x-auto flex items-center justify-between gap-2">
-          <code className="text-green-400">{auth.loginCommand}</code>
+        <pre className="bg-subtle p-3 rounded-panel border border-line text-xs sm:text-sm overflow-x-auto flex items-center justify-between gap-2">
+          <code className="font-mono text-ink">{auth.loginCommand}</code>
           <button
             type="button"
             onClick={handleCopy}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-200 transition-colors"
+            className="flex-shrink-0 text-ink-3 hover:text-ink transition-colors"
             aria-label="Copy command"
           >
             {copied ? (
-              <Check className="w-4 h-4 text-green-400" />
+              <Check className="w-4 h-4 text-success" />
             ) : (
               <Copy className="w-4 h-4" />
             )}
@@ -75,7 +75,6 @@ const HfAuthDialog: React.FC<HfAuthDialogProps> = ({ open, onOpenChange }) => {
           size="sm"
           onClick={handleRefetch}
           disabled={refetching}
-          className="border-amber-700 bg-transparent text-amber-100 hover:bg-amber-900/40 hover:text-amber-50"
         >
           <RefreshCw
             className={`w-4 h-4 mr-2 ${refetching ? "animate-spin" : ""}`}
