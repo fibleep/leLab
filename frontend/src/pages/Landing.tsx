@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import TopNav from "@/components/nav/TopNav";
 import Footer from "@/components/Footer";
-import DotMatrixHeading from "@/components/brand/DotMatrixHeading";
 import { Panel } from "@/components/brand/primitives";
 import RobotConfigManager from "@/components/landing/RobotConfigManager";
 import RecordingModal from "@/components/landing/RecordingModal";
@@ -240,18 +239,8 @@ const Landing = () => {
     <div className="min-h-screen bg-surface text-ink">
       <TopNav onRecord={openRecordingModal} onHelp={() => setShowUsageModal(true)} />
 
-      {/* Hero — compact wordmark accent, not a billboard */}
-      <header className="mx-auto flex max-w-[1400px] flex-wrap items-baseline justify-between gap-x-6 gap-y-2 px-6 pt-24 pb-6 md:px-8">
-        <DotMatrixHeading className="text-[clamp(1.6rem,3.4vw,2.75rem)]">
-          DATA BECOMES <span className="dm-amber">POLICY.</span>
-        </DotMatrixHeading>
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-3">
-          Camera → policy → robot.
-        </p>
-      </header>
-
       {/* Unified workspace — one clean view of everything */}
-      <main className="mx-auto grid max-w-[1400px] grid-cols-1 gap-4 px-6 pb-16 md:px-8 lg:grid-cols-2">
+      <main className="mx-auto grid max-w-[1400px] grid-cols-1 gap-4 px-6 pb-16 pt-28 md:px-8 lg:grid-cols-2">
         {/* LEFT — robot / camera / dataset */}
         <div className="flex flex-col gap-4">
           <RobotConfigManager
