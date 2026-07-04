@@ -52,6 +52,9 @@ class InferenceRequest(BaseModel):
 
 inference_active: bool = False
 _inference_proc: subprocess.Popen | None = None
+# Incremented on every slot claim and every setup-phase cancel; a start that
+# loses its generation while downloading/launching must not publish its proc.
+_start_generation: int = 0
 _inference_started_at: float | None = None
 _inference_rollout_started_at: float | None = None
 _inference_meta: dict[str, Any] = {}
@@ -189,6 +192,9 @@ def handle_start_inference(request: InferenceRequest) -> dict[str, Any]:
             }
         # Claim the slot now so a concurrent caller losing the race sees us.
         inference_active = True
+        global _start_generation
+        _start_generation += 1
+        my_generation = _start_generation
 
     try:
         # `setup_follower_calibration_file` returns the basename without the
@@ -249,13 +255,38 @@ def handle_start_inference(request: InferenceRequest) -> dict[str, Any]:
         ).start()
     except Exception as exc:
         logger.exception("Failed to start inference")
-        # Subprocess never started — release the slot.
+        # Subprocess never started — release the slot, unless a stop already
+        # cancelled this setup and someone else claimed a new generation.
         with _state_lock:
-            inference_active = False
+            if _start_generation == my_generation:
+                inference_active = False
         return {"success": False, "status_code": 500, "message": f"Failed to start inference: {exc}"}
 
     with _state_lock:
-        _inference_proc = proc
+        if not inference_active or _start_generation != my_generation:
+            # Stop was called while we were downloading the policy / launching.
+            slot_lost = True
+        else:
+            slot_lost = False
+            _inference_proc = proc
+    if slot_lost:
+        logger.info("Inference start cancelled during setup; terminating fresh subprocess")
+        try:
+            proc.terminate()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait()
+        except Exception:
+            logger.exception("Failed to reap cancelled inference subprocess")
+        return {
+            "success": False,
+            "status_code": 409,
+            "message": "Inference start was cancelled while setting up.",
+        }
+
+    with _state_lock:
         _inference_started_at = time.time()
         _inference_rollout_started_at = None
         _inference_meta = {
@@ -272,6 +303,17 @@ def handle_stop_inference() -> dict[str, Any]:
     global _inference_rollout_started_at, _inference_meta
 
     with _state_lock:
+        if inference_active and _inference_proc is None:
+            # Start is still in its setup phase (e.g. downloading the policy
+            # from the Hub). Cancel it: bump the generation so the in-flight
+            # start notices it lost the slot and reaps its own subprocess.
+            global _start_generation
+            _start_generation += 1
+            inference_active = False
+            return {
+                "success": True,
+                "message": "Inference start was still setting up (e.g. downloading the model); cancelled.",
+            }
         if not inference_active or _inference_proc is None:
             return {"success": False, "status_code": 409, "message": "No inference is active"}
         proc = _inference_proc

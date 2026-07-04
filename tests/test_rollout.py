@@ -261,3 +261,30 @@ def test_handle_start_inference_blocked_when_already_active(monkeypatch) -> None
     assert result["success"] is False
     assert result["status_code"] == 409
     assert "already active" in result["message"]
+
+
+def test_stop_during_setup_cancels_pending_start() -> None:
+    """A stop issued while start is still in its setup phase (downloading the
+    policy, proc not yet published) must clear the active flag and bump the
+    generation so the in-flight start loses its slot."""
+    from lelab import rollout
+
+    with rollout._state_lock:
+        rollout.inference_active = True
+        rollout._inference_proc = None
+        gen_before = rollout._start_generation
+
+    result = rollout.handle_stop_inference()
+
+    assert result["success"] is True
+    assert "cancelled" in result["message"]
+    assert rollout.inference_active is False
+    assert rollout._start_generation == gen_before + 1
+
+
+def test_stop_idle_still_rejects() -> None:
+    from lelab import rollout
+
+    result = rollout.handle_stop_inference()
+    assert result["success"] is False
+    assert result["status_code"] == 409
